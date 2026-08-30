@@ -1,80 +1,80 @@
-# BugStream - Bug Management System
+# BugStream - Sistem Manajemen Bug
 
-BugStream is a real-time, responsive enterprise bug tracking and management console. It features multi-role authorization, scoped analytical dashboards, dynamic priority distributions, comments timeline, and administrative user management.
+BugStream adalah konsol pelacakan dan manajemen bug enterprise yang responsif dan berjalan secara real-time. Aplikasi ini dilengkapi dengan autentikasi multi-role, dashboard analitik terpadu, grafik distribusi prioritas yang dinamis, lini masa komentar, dan pengelolaan user admin (CRUD).
 
 ---
 
-## 👥 Role Accounts & Logins
+## 👥 Akun Login & Hak Akses
 
-All accounts use the same password: **`pisangkeju`**
+Semua akun menggunakan kata sandi yang sama: **`pisangkeju`**
 
-| Role | Username / Name | Email | Description / Access Level |
+| Peran (Role) | Nama / Username | Email | Deskripsi / Hak Akses |
 | :--- | :--- | :--- | :--- |
-| **Super Admin** | `masteryoda` | `yoda@jedi.com` | Full system access: User CRUD management, global metrics dashboard, and reassigning bugs. |
-| **Support Dev (QA)** | `obiwan` | `obiwan@jedi.com` | Reports bugs, views dashboard scoped to their reported bugs, and conducts bug verification/retests. |
-| **Developer** | `anakin` | `anakin@jedi.com` | Access restricted to assigned bugs list; updates task progress (Start progress -> Mark as fixed). |
+| **Super Admin** | `masteryoda` | `yoda@jedi.com` | Akses penuh sistem: Pengelolaan akun pengguna (CRUD), dasbor statistik global, dan menugaskan ulang bug. |
+| **Support Dev (QA)** | `obiwan` | `obiwan@jedi.com` | Melaporkan bug baru, melihat dasbor statistik khusus bug buatannya sendiri, dan melakukan pengujian ulang (*retest*) atau menutup bug. |
+| **Developer** | `anakin` | `anakin@jedi.com` | Hanya dapat melihat daftar bug yang ditugaskan kepada dirinya; memperbarui status pengerjaan bug (Mulai Progress -> Selesai Diperbaiki). |
 
 ---
 
-## 🚀 Installation Guide
+## 🚀 Panduan Instalasi
 
-Follow these steps to set up the project locally.
+Ikuti langkah-langkah di bawah ini untuk memasang dan menjalankan proyek secara lokal.
 
-### 📋 Prerequisites
-Ensure you have the following installed:
-- **PHP 8.2+** (with SQLite extension enabled)
+### 📋 Prasyarat
+Pastikan komputer Anda sudah terpasang:
+- **PHP 8.2+** (dengan ekstensi SQLite aktif)
 - **Composer**
 - **Node.js & NPM**
 
-### 💻 Setup Steps
+### 💻 Langkah Pemasangan
 
-1. **Clone the Repository**
+1. **Kloning Repositori**
    ```bash
    git clone https://github.com/alvianahmadfebrian/bugstream.git
    cd bugstream
    ```
 
-2. **Install PHP and Javascript Dependencies**
+2. **Pasang Library PHP dan Javascript**
    ```bash
    composer install
    npm install
    ```
 
-3. **Configure Environment File**
-   Copy the example environment configuration:
+3. **Salin File Konfigurasi Environment**
+   Salin file contoh konfigurasi ke file `.env` aktif:
    ```bash
    cp .env.example .env
    ```
 
-4. **Generate Application Key**
+4. **Buat Application Key**
    ```bash
    php artisan key:generate
    ```
 
-5. **Initialize SQLite Database**
-   Create an empty SQLite file:
+5. **Buat Database SQLite Baru**
+   Buat file database kosong di folder database:
    ```bash
    touch database/database.sqlite
    ```
 
-6. **Run Migrations & Seed Default Accounts**
-   Run the migration tool to build database schema and seed the `masteryoda`, `obiwan`, and `anakin` accounts:
+6. **Jalankan Migrasi & Pengisian Akun Bawaan (Seeder)**
+   Jalankan perintah ini untuk membangun tabel database dan membuat akun `masteryoda`, `obiwan`, dan `anakin`:
    ```bash
    php artisan migrate:fresh --seed
    ```
 
-7. **Compile Assets & Start Dev Server**
-   Start the Laravel local server:
+7. **Jalankan Server Lokal**
+   Mulai server pengembangan Laravel:
    ```bash
    php artisan serve
    ```
-   Open your browser and navigate to: `http://127.0.0.1:8000`
+   Buka peramban (browser) Anda dan akses alamat: `http://127.0.0.1:8000`
 
 ---
 
-## 🧪 Running Automated Tests
+## 🧪 Menjalankan Pengujian Otomatis (Unit Testing)
 
-Run the complete integration and feature test suite (which includes role access control, profile updates, and CRUD tests):
+Untuk menjalankan seluruh suite pengujian fitur (termasuk verifikasi pembatasan role, pembaruan profil, dan CRUD):
 ```bash
 php artisan test
 ```
