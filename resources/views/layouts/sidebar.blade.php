@@ -1,0 +1,148 @@
+<aside id="main-sidebar" class="w-sidebar-width h-screen fixed left-0 top-0 bg-surface-container-low shadow-sm z-20 flex flex-col py-section-padding px-element-gap border-r border-outline-variant">
+    <!-- Brand Header -->
+    <div class="mb-12 px-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary font-headline-sm shrink-0">B</div>
+        <div class="sidebar-brand-text">
+            <h1 class="text-headline-md font-headline-md text-primary">BugStream</h1>
+            <p class="font-label-md text-label-md text-secondary">
+                @if(auth()->user()->role === 'super_admin')
+                    Super Admin
+                @elseif(auth()->user()->role === 'support_dev')
+                    Support / QA
+                @else
+                    Developer
+                @endif
+            </p>
+        </div>
+    </div>
+    <!-- CTA -->
+    @if(auth()->user()->role !== 'developer')
+        <div class="mb-6 px-2 sidebar-cta-container">
+            <a href="{{ route('bugs.create') }}" class="w-full bg-primary text-on-primary font-label-md text-label-md py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-tint active:scale-95 duration-150 transition-all shadow-sm cursor-pointer shrink-0" title="Report Bug">
+                <span class="material-symbols-outlined text-[18px] shrink-0">add</span>
+                <span class="sidebar-text">Report Bug</span>
+            </a>
+        </div>
+    @endif
+    <!-- Navigation Tabs -->
+    <nav class="flex flex-col gap-1 flex-1">
+        @if(auth()->user()->role === 'super_admin' || auth()->user()->role === 'support_dev')
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('dashboard') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('dashboard') }}" title="Dashboard">
+                <span class="material-symbols-outlined shrink-0">dashboard</span>
+                <span class="sidebar-text">Dashboard</span>
+            </a>
+        @endif
+        @if(auth()->user()->role === 'super_admin')
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('users*') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('users.index') }}" title="User Management">
+                <span class="material-symbols-outlined shrink-0">group</span>
+                <span class="sidebar-text">User Management</span>
+            </a>
+        @endif
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('bugs*') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('bugs') }}" title="Bugs">
+            <span class="material-symbols-outlined shrink-0" style="font-variation-settings: 'FILL' {{ request()->routeIs('bugs*') ? 1 : 0 }};">bug_report</span>
+            <span class="sidebar-text">Bugs</span>
+        </a>
+        @if(auth()->user()->role === 'super_admin' || auth()->user()->role === 'support_dev')
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('reports') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('reports') }}" title="Reports">
+                <span class="material-symbols-outlined shrink-0">assessment</span>
+                <span class="sidebar-text">Reports</span>
+            </a>
+        @endif
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('settings') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('settings') }}" title="Settings">
+            <span class="material-symbols-outlined shrink-0">settings</span>
+            <span class="sidebar-text">Settings</span>
+        </a>
+    </nav>
+    <!-- Footer Action -->
+    <div class="mt-auto pt-4 border-t border-outline-variant">
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:bg-surface-container-high transition-colors active:scale-95 duration-150 cursor-pointer font-body-md text-body-md" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="Logout">
+            <span class="material-symbols-outlined shrink-0">logout</span>
+            <span class="sidebar-text">Logout</span>
+        </a>
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+            @csrf
+        </form>
+    </div>
+</aside>
+
+<style>
+    /* Smooth Transitions for sidebar elements */
+    #main-sidebar, .ml-sidebar-width, header {
+        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                    margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                    left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Collapsed Sidebar overrides */
+    .sidebar-collapsed #main-sidebar {
+        width: 72px !important;
+    }
+    
+    /* Hide text labels in collapsed state */
+    .sidebar-collapsed .sidebar-text,
+    .sidebar-collapsed .sidebar-brand-text {
+        opacity: 0;
+        display: none !important;
+    }
+    
+    /* Center navigation icons when collapsed */
+    .sidebar-collapsed #main-sidebar nav a,
+    .sidebar-collapsed #main-sidebar .mt-auto a {
+        justify-content: center !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Center brand B logo when collapsed */
+    .sidebar-collapsed #main-sidebar .mb-12 {
+        justify-content: center !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Collapse Report Bug CTA button to FAB with plus icon */
+    .sidebar-collapsed #main-sidebar .sidebar-cta-container {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .sidebar-collapsed #main-sidebar .sidebar-cta-container a {
+        width: 40px !important;
+        height: 40px !important;
+        padding: 0 !important;
+        border-radius: 9999px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Collapsed main content margin & header position */
+    .sidebar-collapsed .ml-sidebar-width {
+        margin-left: 72px !important;
+    }
+    
+    .sidebar-collapsed header {
+        width: calc(100% - 72px) !important;
+        left: 72px !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('sidebar-toggle-btn');
+        
+        // Immediately load state to prevent layout shift
+        if (localStorage.getItem('sidebar-collapsed') === 'true') {
+            document.body.classList.add('sidebar-collapsed');
+        }
+        
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
+            });
+        }
+    });
+</script>
