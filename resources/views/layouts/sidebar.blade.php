@@ -1,24 +1,14 @@
-<aside id="main-sidebar" class="w-sidebar-width h-screen fixed left-0 top-0 bg-surface-container-low shadow-sm z-20 flex flex-col py-section-padding px-element-gap border-r border-outline-variant">
+<aside id="main-sidebar" class="w-sidebar-width h-screen fixed left-0 top-0 bg-white shadow-sm z-20 flex flex-col py-section-padding px-element-gap border-r border-outline-variant">
     <!-- Brand Header -->
-    <div class="mb-12 px-4 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary font-headline-sm shrink-0">B</div>
-        <div class="sidebar-brand-text">
-            <h1 class="text-headline-md font-headline-md text-primary">BugStream</h1>
-            <p class="font-label-md text-label-md text-secondary">
-                @if(auth()->user()->role === 'super_admin')
-                    Super Admin
-                @elseif(auth()->user()->role === 'support_dev')
-                    Support / QA
-                @else
-                    Developer
-                @endif
-            </p>
-        </div>
+    <div class="mb-10 px-2 flex flex-col items-center">
+        <a href="{{ route('dashboard') }}" class="flex items-center justify-center w-full" title="QATrack">
+            <img src="{{ asset('images/logo.png') }}" alt="QATrack" class="h-14 max-h-14 w-auto object-contain">
+        </a>
     </div>
     <!-- CTA -->
     @if(auth()->user()->role !== 'developer')
         <div class="mb-6 px-2 sidebar-cta-container">
-            <a href="{{ route('bugs.create') }}" class="w-full bg-primary text-on-primary font-label-md text-label-md py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-tint active:scale-95 duration-150 transition-all shadow-sm cursor-pointer shrink-0" title="Report Bug">
+            <a href="{{ route('bugs.create') }}" class="w-full font-label-md text-label-md py-3 px-4 rounded-lg flex items-center justify-center gap-2 active:scale-95 duration-150 transition-all shadow-sm cursor-pointer shrink-0" style="background-color:#1e3a8a;color:#ffffff;" onmouseover="this.style.backgroundColor='#1e40af'" onmouseout="this.style.backgroundColor='#1e3a8a'" title="Report Bug">
                 <span class="material-symbols-outlined text-[18px] shrink-0">add</span>
                 <span class="sidebar-text">Report Bug</span>
             </a>
@@ -27,35 +17,35 @@
     <!-- Navigation Tabs -->
     <nav class="flex flex-col gap-1 flex-1">
         @if(auth()->user()->role === 'super_admin' || auth()->user()->role === 'support_dev')
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('dashboard') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('dashboard') }}" title="Dashboard">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('dashboard') ? 'font-bold bg-blue-50' : 'hover:bg-blue-50' }}" style="color:#1e3a8a;" href="{{ route('dashboard') }}" title="Dashboard">
                 <span class="material-symbols-outlined shrink-0">dashboard</span>
                 <span class="sidebar-text">Dashboard</span>
             </a>
         @endif
         @if(auth()->user()->role === 'super_admin')
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('users*') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('users.index') }}" title="User Management">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('users*') ? 'font-bold bg-blue-50' : 'hover:bg-blue-50' }}" style="color:#1e3a8a;" href="{{ route('users.index') }}" title="User Management">
                 <span class="material-symbols-outlined shrink-0">group</span>
                 <span class="sidebar-text">User Management</span>
             </a>
         @endif
-        <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('bugs*') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('bugs') }}" title="Bugs">
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('bugs*') ? 'font-bold bg-blue-50' : 'hover:bg-blue-50' }}" style="color:#1e3a8a;" href="{{ route('bugs') }}" title="Bugs">
             <span class="material-symbols-outlined shrink-0" style="font-variation-settings: 'FILL' {{ request()->routeIs('bugs*') ? 1 : 0 }};">bug_report</span>
             <span class="sidebar-text">Bugs</span>
         </a>
         @if(auth()->user()->role === 'super_admin' || auth()->user()->role === 'support_dev')
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('reports') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('reports') }}" title="Reports">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('reports') ? 'font-bold bg-blue-50' : 'hover:bg-blue-50' }}" style="color:#1e3a8a;" href="{{ route('reports') }}" title="Reports">
                 <span class="material-symbols-outlined shrink-0">assessment</span>
                 <span class="sidebar-text">Reports</span>
             </a>
         @endif
-        <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('settings') ? 'text-primary font-bold bg-surface-container-high' : 'text-secondary hover:bg-surface-container-high' }}" href="{{ route('settings') }}" title="Settings">
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('settings') ? 'font-bold bg-blue-50' : 'hover:bg-blue-50' }}" style="color:#1e3a8a;" href="{{ route('settings') }}" title="Settings">
             <span class="material-symbols-outlined shrink-0">settings</span>
             <span class="sidebar-text">Settings</span>
         </a>
     </nav>
     <!-- Footer Action -->
     <div class="mt-auto pt-4 border-t border-outline-variant">
-        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:bg-surface-container-high transition-colors active:scale-95 duration-150 cursor-pointer font-body-md text-body-md" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="Logout">
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 transition-colors active:scale-95 duration-150 cursor-pointer font-body-md text-body-md" style="color:#1e3a8a;" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="Logout">
             <span class="material-symbols-outlined shrink-0">logout</span>
             <span class="sidebar-text">Logout</span>
         </a>
@@ -93,11 +83,16 @@
         padding-right: 0 !important;
     }
     
-    /* Center brand B logo when collapsed */
-    .sidebar-collapsed #main-sidebar .mb-12 {
+    /* Center brand logo when collapsed */
+    .sidebar-collapsed #main-sidebar .mb-10 {
         justify-content: center !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
+    }
+
+    .sidebar-collapsed #main-sidebar img {
+        max-width: 40px !important;
+        height: auto !important;
     }
     
     /* Collapse Report Bug CTA button to FAB with plus icon */

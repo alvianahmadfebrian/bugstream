@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bug;
+use App\Models\User;
+use App\Notifications\BugNotification;
 use Illuminate\Http\Request;
 
 class BugController extends Controller
@@ -60,7 +62,53 @@ class BugController extends Controller
         ]);
 
         $validated['reporter_id'] = $request->user()->id;
-        Bug::create($validated);
+        $bug = Bug::create($validated);
+
+        // Notify Super Admins
+        $superAdmins = User::where('role', 'super_admin')->where('id', '!=', $request->user()->id)->get();
+        foreach ($superAdmins as $admin) {
+            $admin->notify(new BugNotification(
+                title: 'Bug Baru Dilaporkan',
+                message: "{$request->user()->name} melaporkan bug #{$bug->id}: '{$bug->title}' (Prioritas: ".strtoupper($bug->priority).')',
+                type: 'bug_created',
+                bugId: $bug->id,
+                icon: 'bug_report',
+                badgeColor: $bug->priority === 'p1' ? 'error' : 'primary'
+            ));
+        }
+
+        // If developer is assigned, notify the assigned developer
+        if (! empty($bug->developer)) {
+            $assignedDev = User::where('name', $bug->developer)->first();
+            if ($assignedDev && $assignedDev->id !== $request->user()->id) {
+                $assignedDev->notify(new BugNotification(
+                    title: 'Penugasan Bug Baru',
+                    message: "Anda telah ditugaskan untuk menangani bug #{$bug->id}: '{$bug->title}'",
+                    type: 'assigned',
+                    bugId: $bug->id,
+                    icon: 'person_add',
+                    badgeColor: 'primary'
+                ));
+            }
+        }
+
+        // If priority is P1 (Critical), notify all other developers as urgent alert
+        if ($bug->priority === 'p1') {
+            $otherDevs = User::where('role', 'developer')
+                ->when(! empty($bug->developer), fn ($q) => $q->where('name', '!=', $bug->developer))
+                ->where('id', '!=', $request->user()->id)
+                ->get();
+            foreach ($otherDevs as $dev) {
+                $dev->notify(new BugNotification(
+                    title: 'Alert Bug Kritis (P1)',
+                    message: "Bug prioritas tinggi dilaporkan: '{$bug->title}'. Memerlukan perhatian tim.",
+                    type: 'critical',
+                    bugId: $bug->id,
+                    icon: 'warning',
+                    badgeColor: 'error'
+                ));
+            }
+        }
 
         return redirect()->route('bugs')->with('success', 'Bug reported successfully.');
     }
@@ -85,13 +133,87 @@ class BugController extends Controller
         ]);
 
         if ($user->role === 'developer') {
-            if (!in_array($validated['status'], ['open', 'in_progress', 'fixed'])) {
+            if (! in_array($validated['status'], ['open', 'in_progress', 'fixed'])) {
                 return redirect()->back()->withErrors(['status' => 'Developer is not allowed to set this status.']);
             }
             unset($validated['developer']);
         }
 
+        $oldStatus = $bug->status;
+        $oldDeveloper = $bug->developer;
+
         $bug->update($validated);
+
+        // Check if developer assignment changed
+        $newDeveloper = $bug->developer;
+        if ($newDeveloper && $newDeveloper !== $oldDeveloper) {
+            $assignedDev = User::where('name', $newDeveloper)->first();
+            if ($assignedDev && $assignedDev->id !== $user->id) {
+                $assignedDev->notify(new BugNotification(
+                    title: 'Bug Ditugaskan Kepada Anda',
+                    message: "{$user->name} menugaskan Anda ke bug #{$bug->id}: '{$bug->title}'",
+                    type: 'assigned',
+                    bugId: $bug->id,
+                    icon: 'person_add',
+                    badgeColor: 'primary'
+                ));
+            }
+        }
+
+        // Check if status changed
+        if ($oldStatus !== $bug->status) {
+            $statusLabels = [
+                'open' => 'Open',
+                'in_progress' => 'In Progress',
+                'fixed' => 'Fixed',
+                'retest' => 'Retest',
+                'closed' => 'Closed',
+            ];
+            $statusLabel = $statusLabels[$bug->status] ?? ucfirst($bug->status);
+
+            // 1. Notify reporter (support_dev) if someone else updated it
+            if ($bug->reporter_id && $bug->reporter_id !== $user->id) {
+                $reporter = User::find($bug->reporter_id);
+                if ($reporter) {
+                    $reporter->notify(new BugNotification(
+                        title: 'Status Bug Diperbarui',
+                        message: "{$user->name} memperbarui status bug #{$bug->id} ('{$bug->title}') menjadi '{$statusLabel}'.",
+                        type: 'status_updated',
+                        bugId: $bug->id,
+                        icon: in_array($bug->status, ['fixed', 'closed']) ? 'check_circle' : 'sync',
+                        badgeColor: in_array($bug->status, ['fixed', 'closed']) ? 'emerald' : 'primary'
+                    ));
+                }
+            }
+
+            // 2. Notify assigned developer if someone else updated it
+            if (! empty($bug->developer)) {
+                $assignedDev = User::where('name', $bug->developer)->first();
+                if ($assignedDev && $assignedDev->id !== $user->id && $assignedDev->id !== $bug->reporter_id) {
+                    $assignedDev->notify(new BugNotification(
+                        title: 'Status Bug Diperbarui',
+                        message: "Status bug #{$bug->id} ('{$bug->title}') diubah menjadi '{$statusLabel}' oleh {$user->name}.",
+                        type: 'status_updated',
+                        bugId: $bug->id,
+                        icon: 'sync',
+                        badgeColor: 'primary'
+                    ));
+                }
+            }
+
+            // 3. Notify Super Admins (if not the one who updated)
+            $superAdmins = User::where('role', 'super_admin')->where('id', '!=', $user->id)->get();
+            foreach ($superAdmins as $admin) {
+                $admin->notify(new BugNotification(
+                    title: 'Update Aktivitas Bug',
+                    message: "{$user->name} mengubah status bug #{$bug->id} ('{$bug->title}') menjadi '{$statusLabel}'.",
+                    type: 'status_updated',
+                    bugId: $bug->id,
+                    icon: 'history',
+                    badgeColor: 'secondary'
+                ));
+            }
+        }
 
         return redirect()->route('bugs.show', $bug)->with('success', 'Bug updated successfully.');
     }

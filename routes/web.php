@@ -1,22 +1,32 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BugController;
-
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
+use App\Models\Bug;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifications', [NotificationController::class, 'clearAll'])->name('notifications.clear-all');
+
     Route::get('/', function () {
         $user = auth()->user();
         if ($user->role === 'developer') {
             return redirect()->route('bugs');
         }
-        $query = \App\Models\Bug::query();
+        $query = Bug::query();
         if ($user->role === 'support_dev') {
             $query->where('reporter_id', $user->id);
         }
         $recentBugs = $query->orderBy('created_at', 'desc')->take(5)->get();
+
         return view('dashboard', compact('recentBugs'));
     })->name('dashboard');
 
@@ -29,13 +39,14 @@ Route::middleware('auth')->group(function () {
         if (auth()->user()->role === 'developer') {
             return redirect()->route('bugs');
         }
+
         return view('reports');
     })->name('reports');
 
     Route::get('/settings', [ProfileController::class, 'edit'])->name('settings');
     Route::patch('/settings/profile', [ProfileController::class, 'updateProfile'])->name('settings.profile.update');
     Route::put('/settings/password', [ProfileController::class, 'updatePassword'])->name('settings.password.update');
-    Route::resource('users', \App\Http\Controllers\UserController::class);
+    Route::resource('users', UserController::class);
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });

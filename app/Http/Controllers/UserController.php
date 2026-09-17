@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\BugNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -27,6 +28,7 @@ class UserController extends Controller
         $this->authorizeAdmin();
 
         $users = User::orderBy('created_at', 'desc')->get();
+
         return view('users.index', compact('users'));
     }
 
@@ -56,7 +58,16 @@ class UserController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
 
-        User::create($validated);
+        $newUser = User::create($validated);
+
+        // Welcome notification to new user
+        $newUser->notify(new BugNotification(
+            title: 'Selamat Datang di QATrack!',
+            message: "Akun Anda telah aktif dengan role: {$newUser->role}.",
+            type: 'system',
+            icon: 'verified_user',
+            badgeColor: 'primary'
+        ));
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
@@ -85,7 +96,7 @@ class UserController extends Controller
             'role' => ['required', 'string', 'in:super_admin,support_dev,developer'],
         ]);
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);

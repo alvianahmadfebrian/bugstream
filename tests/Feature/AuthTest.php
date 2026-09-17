@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Bug;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -31,7 +31,7 @@ class AuthTest extends TestCase
         $response = $this->get('/login');
 
         $response->assertStatus(200);
-        $response->assertSee('BugStream');
+        $response->assertSee('QATrack');
         $response->assertSee('Email or Username');
     }
 
@@ -130,7 +130,7 @@ class AuthTest extends TestCase
     {
         $user = User::factory()->create();
 
-        \App\Models\Bug::create([
+        Bug::create([
             'id' => 92,
             'title' => 'Payment gateway timeout on checkout',
             'priority' => 'p1',
@@ -226,7 +226,7 @@ class AuthTest extends TestCase
             'description' => 'Test description',
         ]);
 
-        $response = $this->get('/bugs/' . $bug->id);
+        $response = $this->get('/bugs/'.$bug->id);
 
         $response->assertStatus(302);
         $response->assertRedirect('/login');
@@ -246,7 +246,7 @@ class AuthTest extends TestCase
             'description' => 'Test steps details reproducer.',
         ]);
 
-        $response = $this->actingAs($user)->get('/bugs/' . $bug->id);
+        $response = $this->actingAs($user)->get('/bugs/'.$bug->id);
 
         $response->assertStatus(200);
         $response->assertSee('Dynamic Testing Title');

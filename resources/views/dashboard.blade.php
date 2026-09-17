@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Dashboard - BugStream Management System</title>
+    <title>Dashboard - QATrack Management System</title>
     <!-- Material Symbols -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <!-- Google Fonts: Inter -->
@@ -19,55 +19,54 @@
         tailwind.config = {
             darkMode: "class",
             theme: {
-                extend: {
-                    "colors": {
-                            "on-primary-container": "#90a8ff",
-                            "tertiary-fixed-dim": "#ffb691",
-                            "inverse-on-surface": "#eaf1ff",
-                            "surface-container-lowest": "#ffffff",
-                            "secondary": "#5c5e62",
-                            "surface-bright": "#f8f9ff",
-                            "on-error-container": "#93000a",
-                            "primary-container": "#1e3a8a",
-                            "on-secondary-fixed-variant": "#44474a",
-                            "on-tertiary-fixed": "#341100",
-                            "surface": "#f8f9ff",
-                            "primary-fixed-dim": "#b6c4ff",
-                            "on-secondary-fixed": "#191c1f",
-                            "outline-variant": "#c5c5d3",
-                            "secondary-fixed": "#e1e2e6",
-                            "tertiary": "#4b1c00",
-                            "surface-container-highest": "#d3e4fe",
-                            "error": "#ba1a1a",
-                            "on-tertiary-container": "#f39461",
-                            "tertiary-container": "#6e2c00",
-                            "inverse-primary": "#b6c4ff",
-                            "on-surface": "#0b1c30",
-                            "surface-tint": "#4059aa",
-                            "background": "#f8f9ff",
-                            "surface-dim": "#cbdbf5",
-                            "secondary-fixed-dim": "#c5c6ca",
-                            "on-secondary-container": "#606366",
-                            "surface-container": "#e5eeff",
-                            "primary": "#00236f",
-                            "surface-variant": "#d3e4fe",
-                            "on-background": "#0b1c30",
-                            "tertiary-fixed": "#ffdbcb",
-                            "on-surface-variant": "#444651",
-                            "primary-fixed": "#dce1ff",
-                            "secondary-container": "#dedfe3",
-                            "on-primary": "#ffffff",
-                            "error-container": "#ffdad6",
-                            "on-secondary": "#ffffff",
-                            "inverse-surface": "#213145",
-                            "outline": "#757682",
-                            "on-tertiary": "#ffffff",
-                            "on-primary-fixed-variant": "#264191",
-                            "surface-container-high": "#dce9ff",
-                            "surface-container-low": "#eff4ff",
-                            "on-error": "#ffffff",
-                            "on-primary-fixed": "#00164e",
-                            "on-tertiary-fixed-variant": "#773205"
+                extend: {                    "colors": {
+                        "on-primary-container": "#dbeafe",
+                        "tertiary-fixed-dim": "#fde68a",
+                        "inverse-on-surface": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#71717a",
+                        "surface-bright": "#ffffff",
+                        "on-error-container": "#991b1b",
+                        "primary-container": "#1e40af",
+                        "on-secondary-fixed-variant": "#3f3f46",
+                        "on-tertiary-fixed": "#78350f",
+                        "surface": "#ffffff",
+                        "primary-fixed-dim": "#e4e4e7",
+                        "on-secondary-fixed": "#18181b",
+                        "outline-variant": "#e4e4e7",
+                        "secondary-fixed": "#f4f4f5",
+                        "tertiary": "#78350f",
+                        "surface-container-highest": "#e4e4e7",
+                        "error": "#dc2626",
+                        "on-tertiary-container": "#92400e",
+                        "tertiary-container": "#fef3c7",
+                        "inverse-primary": "#e4e4e7",
+                        "on-surface": "#18181b",
+                        "surface-tint": "#1e40af",
+                        "background": "#ffffff",
+                        "surface-dim": "#f4f4f5",
+                        "secondary-fixed-dim": "#e4e4e7",
+                        "on-secondary-container": "#1e3a8a",
+                        "surface-container": "#f4f4f5",
+                        "primary": "#1e3a8a",
+                        "surface-variant": "#f4f4f5",
+                        "on-background": "#18181b",
+                        "tertiary-fixed": "#fef3c7",
+                        "on-surface-variant": "#52525b",
+                        "primary-fixed": "#f4f4f5",
+                        "secondary-container": "#eff6ff",
+                        "on-primary": "#ffffff",
+                        "error-container": "#fee2e2",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#1e3a8a",
+                        "outline": "#a1a1aa",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#3f3f46",
+                        "surface-container-high": "#e4e4e7",
+                        "surface-container-low": "#fafafa",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#18181b",
+                        "on-tertiary-fixed-variant": "#92400e"
                     },
                     "borderRadius": {
                             "DEFAULT": "0.25rem",
@@ -115,7 +114,7 @@
         <div class="p-section-padding max-w-7xl mx-auto">
             <!-- Page Header -->
             <div class="mb-container-gap">
-                <h2 class="font-display-lg text-display-lg text-on-background mb-1 font-semibold">Dashboard Overview</h2>
+                <h2 class="font-display-lg text-display-lg mb-1 font-semibold" style="color:#1e3a8a">Dashboard Overview</h2>
                 <p class="font-body-md text-body-md text-secondary">Welcome back, {{ auth()->user()->name }}! Real-time bug metrics and recent activity tracking.</p>
             </div>
             @php
@@ -240,7 +239,7 @@
                 <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.04)] border border-outline-variant/30 overflow-hidden flex flex-col">
                     <div class="p-6 border-b border-outline-variant/50 flex justify-between items-center">
                         <h3 class="font-headline-sm text-headline-sm text-on-background">Recent Activity</h3>
-                        <button class="text-primary font-label-md text-label-md hover:underline cursor-pointer">View All</button>
+                        <button class="font-label-md text-label-md hover:underline cursor-pointer" style="color:#1e3a8a;">View All</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
