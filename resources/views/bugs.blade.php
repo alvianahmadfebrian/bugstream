@@ -119,35 +119,64 @@
                         <h2 class="text-display-lg font-display-lg" style="color:#1e3a8a">Bugs</h2>
                         <p class="text-body-md font-body-md text-on-surface-variant mt-1">Manage, track, and resolve system issues.</p>
                     </div>
-                    <a href="{{ route('bugs.create') }}" class="text-white font-label-md text-label-md py-2.5 px-5 rounded-lg flex items-center gap-2 active:scale-95 duration-150 shadow-[0_2px_4px_rgba(0,0,0,0.04)] cursor-pointer hover:opacity-90 transition-opacity" style="background-color:#1e3a8a;">
-                        <span class="material-symbols-outlined text-[18px]">add</span>
-                        Add New Bug
-                    </a>
+                    @if(auth()->user()->role !== 'developer')
+                        <a href="{{ route('bugs.create') }}" class="text-white font-label-md text-label-md py-2.5 px-5 rounded-lg flex items-center gap-2 active:scale-95 duration-150 shadow-[0_2px_4px_rgba(0,0,0,0.04)] cursor-pointer hover:opacity-90 transition-opacity" style="background-color:#1e3a8a;">
+                            <span class="material-symbols-outlined text-[18px]">add</span>
+                            Add New Bug
+                        </a>
+                    @endif
                 </div>
+
+                <!-- Alert Notifications -->
+                @if (session('success'))
+                    <div class="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg font-body-md text-body-md flex items-center gap-2">
+                        <span class="material-symbols-outlined text-green-600">check_circle</span>
+                        {{ session('success') }}
+                    </div>
+                @endif
+                @if ($errors->any())
+                    <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg font-body-md text-body-md flex flex-col gap-1">
+                        @foreach ($errors->all() as $error)
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-red-600 text-[18px]">error</span>
+                                <span>{{ $error }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
                 <!-- Filters & Controls Bar -->
-                <div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant flex flex-wrap items-center gap-4">
+                <form method="GET" action="{{ route('bugs') }}" class="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant flex flex-wrap items-center gap-4">
                     <div class="flex items-center gap-2 border-r border-outline-variant pr-4">
                         <span class="material-symbols-outlined text-outline">filter_list</span>
                         <span class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Filters</span>
                     </div>
-                    <select class="bg-surface border border-outline-variant rounded-md py-1.5 px-3 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none min-w-[140px]">
+                    <select name="status" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-md py-1.5 pl-3.5 pr-9 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none min-w-[140px]">
                         <option value="">All Statuses</option>
-                        <option value="open">Open</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="fixed">Fixed</option>
+                        <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
+                        <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                        <option value="fixed" {{ request('status') == 'fixed' ? 'selected' : '' }}>Fixed</option>
+                        <option value="retest" {{ request('status') == 'retest' ? 'selected' : '' }}>Retest</option>
+                        <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
                     </select>
-                    <select class="bg-surface border border-outline-variant rounded-md py-1.5 px-3 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none min-w-[140px]">
+                    <select name="priority" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-md py-1.5 pl-3.5 pr-9 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none min-w-[140px]">
                         <option value="">All Priorities</option>
-                        <option value="p1">P1 - Critical</option>
-                        <option value="p2">P2 - High</option>
-                        <option value="p3">P3 - Medium</option>
+                        <option value="p1" {{ request('priority') == 'p1' ? 'selected' : '' }}>P1 - Critical</option>
+                        <option value="p2" {{ request('priority') == 'p2' ? 'selected' : '' }}>P2 - High</option>
+                        <option value="p3" {{ request('priority') == 'p3' ? 'selected' : '' }}>P3 - Medium</option>
                     </select>
-                    <select class="bg-surface border border-outline-variant rounded-md py-1.5 px-3 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none min-w-[140px]">
-                        <option value="">All Developers</option>
-                        <option value="dev1">Sarah Jenkins</option>
-                        <option value="dev2">Marcus Reed</option>
-                    </select>
-                </div>
+                    @if (auth()->user()->role !== 'developer')
+                        <select name="developer" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-md py-1.5 pl-3.5 pr-9 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none min-w-[140px]">
+                            <option value="">All Developers</option>
+                            @foreach ($developers as $dev)
+                                <option value="{{ $dev->name }}" {{ request('developer') == $dev->name ? 'selected' : '' }}>{{ $dev->name }}</option>
+                            @endforeach
+                        </select>
+                    @endif
+                    @if (request()->hasAny(['status', 'priority', 'developer']))
+                        <a href="{{ route('bugs') }}" class="text-xs text-primary hover:underline ml-auto font-medium">Reset Filters</a>
+                    @endif
+                </form>
                 <!-- Data Table Container -->
                 <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden">
                     <div class="overflow-x-auto">
@@ -167,7 +196,15 @@
                                 @forelse ($bugs as $bug)
                                     <tr class="hover:bg-surface-container-high transition-colors group">
                                         <td class="py-4 px-4 font-mono-code text-mono-code text-on-surface-variant">BUG-{{ 4000 + $bug->id }}</td>
-                                        <td class="py-4 px-4 font-body-md text-body-md text-on-surface font-medium">{{ $bug->title }}</td>
+                                        <td class="py-4 px-4">
+                                            <div class="font-body-md text-body-md text-on-surface font-medium">{{ $bug->title }}</div>
+                                            @if ($bug->project)
+                                                <div class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[11px] font-medium border border-blue-100">
+                                                    <span class="material-symbols-outlined text-[13px]">folder</span>
+                                                    <span>{{ $bug->project }}</span>
+                                                </div>
+                                            @endif
+                                        </td>
                                         <td class="py-4 px-4">
                                             @if ($bug->priority == 'p1')
                                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-error-container text-on-error-container font-label-md text-label-md border border-error/20">
@@ -208,14 +245,21 @@
                                             @endif
                                         </td>
                                         <td class="py-4 px-4 font-body-md text-body-md text-on-surface-variant">{{ $bug->created_at->format('M d, Y') }}</td>
-                                        <td class="py-4 px-4 text-right">
-                                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <a href="{{ route('bugs.show', $bug) }}" class="p-1.5 text-secondary hover:text-primary rounded hover:bg-surface transition-colors cursor-pointer flex items-center justify-center" title="View">
-                                                    <span class="material-symbols-outlined text-[20px]">visibility</span>
+                                        <td class="py-4 px-4 text-right whitespace-nowrap">
+                                            <div class="flex items-center justify-end gap-1.5">
+                                                <a href="{{ route('bugs.show', $bug) }}" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-primary hover:bg-blue-50 border border-outline-variant/60 transition-colors text-xs font-semibold cursor-pointer" title="Lihat Detail">
+                                                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                                    <span>Detail</span>
                                                 </a>
-                                                <button class="p-1.5 text-secondary hover:text-primary rounded hover:bg-surface transition-colors cursor-pointer" title="Edit">
-                                                    <span class="material-symbols-outlined text-[20px]">edit</span>
-                                                </button>
+                                                @if(auth()->user()->role === 'super_admin' || auth()->user()->id === $bug->reporter_id)
+                                                    <form action="{{ route('bugs.destroy', $bug) }}" method="POST" class="inline" onsubmit="return confirmModal(event, 'Apakah Anda yakin ingin menghapus bug ini? Tindakan ini tidak dapat dibatalkan.', 'Hapus Bug', 'danger', 'Ya, Hapus');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="p-1.5 text-secondary hover:text-error hover:bg-error-container/20 rounded-lg transition-colors cursor-pointer" title="Hapus Bug">
+                                                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

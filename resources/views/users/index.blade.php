@@ -115,7 +115,7 @@
                 <!-- Page Header -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h2 class="text-display-lg font-display-lg text-on-surface">User Management</h2>
+                        <h2 class="text-display-lg font-display-lg" style="color:#1e3a8a">User Management</h2>
                         <p class="text-body-md font-body-md text-on-surface-variant mt-1">Manage and provision team accounts and roles.</p>
                     </div>
                     <a href="{{ route('users.create') }}" class="text-white font-label-md text-label-md py-2.5 px-5 rounded-lg flex items-center gap-2 hover:opacity-90 active:scale-95 duration-150 shadow-[0_2px_4px_rgba(0,0,0,0.04)] cursor-pointer" style="background-color:#1e3a8a;">
@@ -193,7 +193,7 @@
                                                 </a>
                                                 
                                                 @if (auth()->id() !== $user->id)
-                                                    <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                                    <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirmModal(event, 'Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan.', 'Hapus User', 'danger', 'Ya, Hapus');">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="p-1 text-on-surface-variant hover:text-error transition-colors cursor-pointer" title="Delete User">

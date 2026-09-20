@@ -108,7 +108,7 @@ class NotificationTest extends TestCase
             'status' => 'in_progress',
         ]);
 
-        $response->assertRedirect(route('bugs.show', $bug));
+        $response->assertRedirect(route('bugs'));
 
         $this->assertEquals(1, $support->fresh()->unreadNotifications()->count());
         $this->assertStringContainsString('In Progress', $support->fresh()->unreadNotifications()->first()->data['message']);

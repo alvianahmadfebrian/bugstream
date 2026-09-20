@@ -239,7 +239,6 @@
                 <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.04)] border border-outline-variant/30 overflow-hidden flex flex-col">
                     <div class="p-6 border-b border-outline-variant/50 flex justify-between items-center">
                         <h3 class="font-headline-sm text-headline-sm text-on-background">Recent Activity</h3>
-                        <button class="font-label-md text-label-md hover:underline cursor-pointer" style="color:#1e3a8a;">View All</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -258,7 +257,13 @@
                                     <tr class="border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors">
                                         <td class="p-4 font-mono-code text-mono-code text-secondary">#BUG-{{ 4000 + $bug->id }}</td>
                                         <td class="p-4 text-on-background font-medium truncate max-w-[200px]">
-                                            <a href="{{ route('bugs.show', $bug) }}" class="hover:text-primary hover:underline">{{ $bug->title }}</a>
+                                            <a href="{{ route('bugs.show', $bug) }}" class="hover:text-primary hover:underline font-semibold block truncate">{{ $bug->title }}</a>
+                                            @if ($bug->project)
+                                                <span class="inline-flex items-center gap-1 text-[11px] text-blue-600 font-medium mt-0.5">
+                                                    <span class="material-symbols-outlined text-[12px]">folder</span>
+                                                    {{ $bug->project }}
+                                                </span>
+                                            @endif
                                         </td>
                                         <td class="p-4">
                                             @if ($bug->priority == 'p1')

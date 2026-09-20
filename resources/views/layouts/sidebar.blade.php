@@ -38,21 +38,7 @@
                 <span class="sidebar-text">Reports</span>
             </a>
         @endif
-        <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('settings') ? 'font-bold bg-blue-50' : 'hover:bg-blue-50' }}" style="color:#1e3a8a;" href="{{ route('settings') }}" title="Settings">
-            <span class="material-symbols-outlined shrink-0">settings</span>
-            <span class="sidebar-text">Settings</span>
-        </a>
     </nav>
-    <!-- Footer Action -->
-    <div class="mt-auto pt-4 border-t border-outline-variant">
-        <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 transition-colors active:scale-95 duration-150 cursor-pointer font-body-md text-body-md" style="color:#1e3a8a;" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="Logout">
-            <span class="material-symbols-outlined shrink-0">logout</span>
-            <span class="sidebar-text">Logout</span>
-        </a>
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-            @csrf
-        </form>
-    </div>
 </aside>
 
 <style>

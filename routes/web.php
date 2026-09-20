@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BugController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Models\Bug;
 use Illuminate\Support\Facades\Route;
@@ -35,13 +36,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/bugs', [BugController::class, 'store'])->name('bugs.store');
     Route::get('/bugs/{bug}', [BugController::class, 'show'])->name('bugs.show');
     Route::patch('/bugs/{bug}/status', [BugController::class, 'updateStatus'])->name('bugs.status.update');
-    Route::get('/reports', function () {
-        if (auth()->user()->role === 'developer') {
-            return redirect()->route('bugs');
-        }
-
-        return view('reports');
-    })->name('reports');
+    Route::delete('/bugs/{bug}', [BugController::class, 'destroy'])->name('bugs.destroy');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+    Route::get('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
 
     Route::get('/settings', [ProfileController::class, 'edit'])->name('settings');
     Route::patch('/settings/profile', [ProfileController::class, 'updateProfile'])->name('settings.profile.update');

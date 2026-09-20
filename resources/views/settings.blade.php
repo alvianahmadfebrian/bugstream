@@ -117,7 +117,7 @@
             <div class="max-w-7xl mx-auto space-y-container-gap">
                 <!-- Page Header -->
                 <div class="mb-8">
-                    <h2 class="text-display-lg font-display-lg text-on-surface">Account Settings</h2>
+                    <h2 class="text-display-lg font-display-lg" style="color:#1e3a8a">Account Settings</h2>
                     <p class="text-body-md font-body-md text-secondary mt-1">Manage your profiles, change passwords, and configure account parameters.</p>
                 </div>
 

@@ -169,40 +169,76 @@
         }
     </style>
 </head>
-<body class="bg-background text-on-background h-full font-body-md overflow-hidden flex">
+<body class="flex bg-background text-on-background font-body-md antialiased h-screen overflow-hidden">
     @include('layouts.sidebar')
 
     <!-- Main Content Area Wrapper -->
-    <div class="flex-1 flex flex-col h-screen md:ml-sidebar-width">
+    <div class="flex-1 ml-sidebar-width flex flex-col h-screen relative">
         @include('layouts.header', ['breadcrumb' => 'Reports & Export'])
 
         <!-- Canvas / Content -->
-        <main class="flex-1 overflow-y-auto pt-16 p-section-padding bg-background">
+        <main class="flex-1 overflow-y-auto mt-16 p-section-padding bg-background">
             <div class="max-w-7xl mx-auto space-y-container-gap">
                 <!-- Page Header & Filters -->
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                     <div>
-                        <h2 class="text-display-lg font-display-lg text-on-surface">Analytics Summary</h2>
+                        <h2 class="text-display-lg font-display-lg" style="color:#1e3a8a">Analytics Summary</h2>
                         <p class="text-body-lg font-body-lg text-on-surface-variant mt-1">Review system performance and export data.</p>
                     </div>
-                    <div class="flex items-center gap-3 bg-surface-container-lowest p-2 rounded-xl shadow-level-1 border border-outline-variant/30">
-                        <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded-lg text-on-surface-variant cursor-pointer hover:bg-surface-container transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">calendar_today</span>
-                            <span class="font-body-md text-body-md">Last 30 Days</span>
+
+                    <!-- Interactive Filter Controls -->
+                    <form method="GET" action="{{ route('reports') }}" class="flex flex-wrap items-center gap-2.5 bg-surface-container-lowest p-2 rounded-xl shadow-level-1 border border-outline-variant">
+                        <div class="flex items-center gap-1.5 px-2 border-r border-outline-variant pr-3 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[18px] text-outline">tune</span>
+                            <span class="text-label-md font-label-md uppercase tracking-wider text-xs font-semibold text-secondary">Filter</span>
                         </div>
-                        <div class="h-6 w-[1px] bg-outline-variant/50"></div>
-                        <div class="flex items-center gap-2 px-3 py-1.5 text-on-surface-variant cursor-pointer hover:bg-surface-container rounded-lg transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">filter_list</span>
-                            <span class="font-body-md text-body-md">Filters</span>
-                        </div>
-                    </div>
+
+                        <!-- Date Period Selector -->
+                        <select name="period" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-lg py-1.5 pl-3.5 pr-9 text-body-md font-medium text-on-surface focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
+                            <option value="30days" {{ request('period', '30days') === '30days' ? 'selected' : '' }}>30 Hari Terakhir</option>
+                            <option value="7days" {{ request('period') === '7days' ? 'selected' : '' }}>7 Hari Terakhir</option>
+                            <option value="90days" {{ request('period') === '90days' ? 'selected' : '' }}>90 Hari Terakhir</option>
+                            <option value="this_year" {{ request('period') === 'this_year' ? 'selected' : '' }}>Tahun Ini</option>
+                            <option value="all" {{ request('period') === 'all' ? 'selected' : '' }}>Semua Waktu</option>
+                        </select>
+
+                        <!-- Project Selector -->
+                        @if ($projects->count() > 0)
+                            <select name="project" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-lg py-1.5 pl-3.5 pr-9 text-body-md font-medium text-on-surface focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
+                                <option value="">Semua Project</option>
+                                @foreach ($projects as $proj)
+                                    <option value="{{ $proj }}" {{ request('project') === $proj ? 'selected' : '' }}>{{ $proj }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+
+                        <!-- Priority Selector -->
+                        <select name="priority" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-lg py-1.5 pl-3.5 pr-9 text-body-md font-medium text-on-surface focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
+                            <option value="">Semua Prioritas</option>
+                            <option value="p1" {{ request('priority') === 'p1' ? 'selected' : '' }}>P1 - Critical</option>
+                            <option value="p2" {{ request('priority') === 'p2' ? 'selected' : '' }}>P2 - High</option>
+                            <option value="p3" {{ request('priority') === 'p3' ? 'selected' : '' }}>P3 - Medium</option>
+                        </select>
+
+                        <!-- Status Selector -->
+                        <select name="status" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-lg py-1.5 pl-3.5 pr-9 text-body-md font-medium text-on-surface focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
+                            <option value="">Semua Status</option>
+                            <option value="open" {{ request('status') === 'open' ? 'selected' : '' }}>Open</option>
+                            <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                            <option value="fixed" {{ request('status') === 'fixed' ? 'selected' : '' }}>Fixed</option>
+                            <option value="retest" {{ request('status') === 'retest' ? 'selected' : '' }}>Retest</option>
+                            <option value="closed" {{ request('status') === 'closed' ? 'selected' : '' }}>Closed</option>
+                        </select>
+
+                        @if (request()->hasAny(['project', 'priority', 'status']) || (request('period') && request('period') !== '30days'))
+                            <a href="{{ route('reports') }}" class="px-2 py-1 text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">refresh</span>
+                                Reset
+                            </a>
+                        @endif
+                    </form>
                 </div>
 
-                @php
-                    $totalBugsCount = \App\Models\Bug::count();
-                    $devCount = max(\App\Models\Bug::whereNotNull('developer')->where('developer', '!=', '')->distinct('developer')->count('developer'), 1);
-                    $bugsPerDev = round($totalBugsCount / $devCount, 1);
-                @endphp
                 <!-- Summary Statistics Bento Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-element-gap">
                     <!-- Stat 1 -->
@@ -212,7 +248,7 @@
                             <span class="material-symbols-outlined text-primary bg-primary-container/10 p-1.5 rounded-full">timer</span>
                         </div>
                         <div class="flex items-baseline gap-2">
-                            <h3 class="text-display-lg font-display-lg text-on-surface">{{ $totalBugsCount > 0 ? '4.2' : '0' }}</h3>
+                            <h3 class="text-display-lg font-display-lg text-on-surface">{{ $avgResolutionTime }}</h3>
                             <span class="text-body-md font-body-md text-secondary">days</span>
                         </div>
                     </div>
@@ -224,8 +260,11 @@
                         </div>
                         <div class="flex items-baseline gap-2">
                             <h3 class="text-display-lg font-display-lg text-on-surface">{{ $totalBugsCount }}</h3>
-                            @if ($totalBugsCount > 0)
-                                <span class="text-body-md font-body-md text-error flex items-center"><span class="material-symbols-outlined text-[16px]">trending_up</span> 12%</span>
+                            @if ($resolvedCount > 0 && $totalBugsCount > 0)
+                                <span class="text-body-md font-body-md text-emerald-600 flex items-center gap-0.5 text-xs font-semibold">
+                                    <span class="material-symbols-outlined text-[15px]">check_circle</span>
+                                    {{ round(($resolvedCount / $totalBugsCount) * 100) }}% resolved
+                                </span>
                             @endif
                         </div>
                     </div>
@@ -236,7 +275,7 @@
                             <span class="material-symbols-outlined text-tertiary bg-tertiary-container/10 p-1.5 rounded-full">person</span>
                         </div>
                         <div class="flex items-baseline gap-2">
-                            <h3 class="text-display-lg font-display-lg text-on-surface">{{ $totalBugsCount > 0 ? $bugsPerDev : '0' }}</h3>
+                            <h3 class="text-display-lg font-display-lg text-on-surface">{{ $bugsPerDev }}</h3>
                             <span class="text-body-md font-body-md text-secondary">avg</span>
                         </div>
                     </div>
@@ -250,28 +289,21 @@
                             <p class="text-body-md font-body-md text-on-surface-variant mt-1">Generate comprehensive reports for stakeholder review.</p>
                         </div>
                     </div>
-                    <div class="p-8 flex flex-col sm:flex-row items-center justify-center gap-6 bg-surface">
-                        <!-- Primary Export -->
-                        <div class="flex flex-col items-center p-6 border border-primary/20 rounded-xl bg-primary-fixed/20 hover:bg-primary-fixed/30 transition-colors w-full sm:w-64 cursor-pointer group">
-                            <div class="w-16 h-16 rounded-full text-white flex items-center justify-center mb-4 group-hover:scale-105 transition-transform" style="background-color:#1e3a8a;">
-                                <span class="material-symbols-outlined text-[32px]" data-weight="fill">picture_as_pdf</span>
+                    <div class="p-8 flex flex-col items-center justify-center bg-surface">
+                        <!-- Excel Export Card -->
+                        <div class="flex flex-col items-center p-8 border border-emerald-500/20 rounded-2xl bg-emerald-50/40 hover:bg-emerald-50/70 transition-all max-w-md w-full shadow-xs text-center">
+                            <div class="w-16 h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mb-4 shadow-md shadow-emerald-600/20 transition-transform">
+                                <span class="material-symbols-outlined text-[32px]">table_chart</span>
                             </div>
-                            <h4 class="text-headline-sm font-headline-sm text-on-surface text-center">Export to PDF</h4>
-                            <p class="text-label-md font-label-md text-secondary text-center mt-2">Visual charts &amp; summaries</p>
-                            <button class="mt-6 w-full py-2.5 text-white rounded-[10px] font-body-md hover:opacity-90" style="background-color:#1e3a8a; transition-colors active:scale-[0.98] shadow-sm cursor-pointer">
-                                Generate PDF
-                            </button>
-                        </div>
-                        <!-- Secondary Export -->
-                        <div class="flex flex-col items-center p-6 border border-outline-variant/40 rounded-xl bg-surface-container-lowest hover:bg-surface-container-low transition-colors w-full sm:w-64 cursor-pointer group shadow-level-1">
-                            <div class="w-16 h-16 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center mb-4 group-hover:scale-105 transition-transform border border-outline-variant/20">
-                                <span class="material-symbols-outlined text-[32px]">table</span>
-                            </div>
-                            <h4 class="text-headline-sm font-headline-sm text-on-surface text-center">Export to Excel</h4>
-                            <p class="text-label-md font-label-md text-secondary text-center mt-2">Raw data &amp; pivot tables</p>
-                            <button class="mt-6 w-full py-2.5 bg-secondary-fixed text-on-secondary-fixed border border-outline-variant/30 rounded-[10px] font-body-md hover:bg-secondary-container transition-colors active:scale-[0.98] cursor-pointer">
-                                Generate CSV
-                            </button>
+                            <h4 class="text-headline-sm font-headline-sm text-on-surface font-bold">Export to Excel</h4>
+                            <p class="text-body-md font-body-md text-on-surface-variant mt-2 max-w-xs">
+                                Unduh seluruh data laporan bug dalam format spreadsheet Excel / CSV lengkap dengan rincian status dan penugasan.
+                            </p>
+                            <a href="{{ route('reports.export.excel', request()->query()) }}" class="mt-6 w-full py-3 text-white rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all active:scale-[0.98] shadow-md shadow-emerald-600/20 cursor-pointer bg-emerald-600">
+                                <span class="material-symbols-outlined text-[20px]">download</span>
+                                Download Excel Report
+                            </a>
+                            <span class="text-[11px] text-secondary mt-3">Kompatibel dengan Microsoft Excel, Google Sheets, & Apple Numbers</span>
                         </div>
                     </div>
                 </div>

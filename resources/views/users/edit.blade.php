@@ -119,7 +119,7 @@
                         <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                         <span>Edit User</span>
                     </div>
-                    <h2 class="text-display-lg font-display-lg text-on-surface">Edit User: {{ $user->name }}</h2>
+                    <h2 class="text-display-lg font-display-lg" style="color:#1e3a8a">Edit User: {{ $user->name }}</h2>
                     <p class="text-body-md font-body-md text-on-surface-variant mt-1">Modify team member account information or rotate roles.</p>
                 </div>
 

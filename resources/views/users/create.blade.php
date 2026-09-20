@@ -119,7 +119,7 @@
                         <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                         <span>Add New User</span>
                     </div>
-                    <h2 class="text-display-lg font-display-lg text-on-surface">Add New User</h2>
+                    <h2 class="text-display-lg font-display-lg" style="color:#1e3a8a">Add New User</h2>
                     <p class="text-body-md font-body-md text-on-surface-variant mt-1">Create a new team member account with designated system permissions.</p>
                 </div>
 

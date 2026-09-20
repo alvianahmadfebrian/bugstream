@@ -49,11 +49,11 @@
                         </div>
                         <div class="flex items-center gap-1 text-xs">
                             <button id="mark-all-read-btn" type="button" class="px-2 py-1 rounded-md text-secondary hover:text-primary hover:bg-surface-container-high transition-colors flex items-center gap-1 cursor-pointer" title="Tandai semua telah dibaca">
-                                <span class="material-symbols-outlined text-[15px]">done_all</span>
+                                <span class="material-symbols-outlined text-[16px]">check</span>
                                 <span class="hidden sm:inline">Tandai dibaca</span>
                             </button>
                             <button id="clear-all-btn" type="button" class="px-2 py-1 rounded-md text-secondary hover:text-error hover:bg-error-container/30 transition-colors flex items-center gap-1 cursor-pointer" title="Hapus semua notifikasi">
-                                <span class="material-symbols-outlined text-[15px]">delete_sweep</span>
+                                <span class="material-symbols-outlined text-[16px]">delete</span>
                                 <span class="hidden sm:inline">Hapus</span>
                             </button>
                         </div>
@@ -145,24 +145,60 @@
 
         <div class="w-px h-6 bg-outline-variant"></div>
 
-        <!-- User Profile Pill -->
-        <div class="flex items-center gap-2">
-            <div class="text-right hidden sm:block">
-                <span class="text-on-surface font-semibold text-xs block leading-tight">{{ $currentUser->name }}</span>
-                <span class="text-[10px] text-secondary font-medium uppercase tracking-wider">
-                    @if($currentUser->role === 'super_admin') Super Admin
-                    @elseif($currentUser->role === 'support_dev') Support / QA
-                    @else Developer @endif
-                </span>
-            </div>
-            <button class="flex items-center gap-2 hover:opacity-85 transition-opacity" title="{{ $currentUser->name }}">
+        <!-- User Profile Dropdown Container -->
+        <div class="relative" id="user-profile-wrapper">
+            <button id="user-profile-btn" type="button" class="flex items-center gap-2.5 p-1 rounded-xl hover:bg-surface-container-low transition-colors cursor-pointer active:scale-95 duration-100" title="{{ $currentUser->name }}" aria-expanded="false">
+                <div class="text-right hidden sm:block">
+                    <span class="text-on-surface font-semibold text-xs block leading-tight">{{ $currentUser->name }}</span>
+                    <span class="text-[10px] text-secondary font-medium uppercase tracking-wider">
+                        @if($currentUser->role === 'super_admin') Super Admin
+                        @elseif($currentUser->role === 'support_dev') Support / QA
+                        @else Developer @endif
+                    </span>
+                </div>
                 <img alt="{{ $currentUser->name }}" class="w-8 h-8 rounded-full object-cover border border-outline-variant shadow-xs" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_ZdyN8nOgyk3nZ0D-4sHzGFv-UJnC8uMmw-ycEHHEoM4oBXA1Ej4N4hx6hJKXrE6-5idg0BkpnTHrQ9IhQVyOxP4fWuITLi1QZCZX9kC5A2YB8eiAP4y76VTqGOO9Oi-92CqaCQEidqahExgSWo0HIllpKfLII64dHGVCPM7Sd_VuibjOm5QGW8gJSAaTtMPngycBP_EwzmxyJhMIrTvyWx4MiWfsY_9mlzQ8vNU3xqIU7DXOG7o8"/>
+                <span class="material-symbols-outlined text-[16px] text-secondary transition-transform duration-200" id="profile-chevron">expand_more</span>
             </button>
+
+            <!-- User Profile Dropdown Menu -->
+            <div id="user-profile-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden flex flex-col transition-all duration-200 origin-top-right">
+                <!-- User Summary -->
+                <div class="p-3.5 border-b border-outline-variant/60 bg-surface-container-low/40">
+                    <p class="text-xs font-semibold text-on-surface truncate">{{ $currentUser->name }}</p>
+                    <p class="text-[11px] text-secondary truncate mt-0.5">{{ $currentUser->email }}</p>
+                    <div class="mt-2">
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-900 border border-blue-200">
+                            @if($currentUser->role === 'super_admin') Super Admin
+                            @elseif($currentUser->role === 'support_dev') Support / QA
+                            @else Developer @endif
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Menu Links -->
+                <div class="p-1.5 flex flex-col gap-0.5">
+                    <a href="{{ route('settings') }}" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-on-surface rounded-lg hover:bg-surface-container-high transition-colors {{ request()->routeIs('settings') ? 'bg-blue-50 font-bold text-primary' : '' }}">
+                        <span class="material-symbols-outlined text-[18px] text-secondary">person</span>
+                        <span>Profile</span>
+                    </a>
+                </div>
+
+                <!-- Logout Link -->
+                <div class="p-1.5 border-t border-outline-variant/60">
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('header-logout-form').submit();" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-error rounded-lg hover:bg-error-container/30 transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px] text-error">logout</span>
+                        <span>Logout</span>
+                    </a>
+                    <form id="header-logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                        @csrf
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </header>
 
-<!-- Notification Dropdown & AJAX Management Script -->
+<!-- Notification & Profile Dropdown Script -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const bellBtn = document.getElementById('notification-bell-btn');
@@ -177,10 +213,54 @@
         const markAllReadBtn = document.getElementById('mark-all-read-btn');
         const clearAllBtn = document.getElementById('clear-all-btn');
 
+        const profileBtn = document.getElementById('user-profile-btn');
+        const profileDropdown = document.getElementById('user-profile-dropdown');
+        const profileChevron = document.getElementById('profile-chevron');
+
         const csrfToken = '{{ csrf_token() }}';
         let currentFilter = 'all';
 
-        // Toggle dropdown open/close
+        // Toggle user profile dropdown
+        if (profileBtn && profileDropdown) {
+            profileBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const isOpen = !profileDropdown.classList.contains('hidden');
+                if (isOpen) {
+                    closeProfileDropdown();
+                } else {
+                    openProfileDropdown();
+                    if (dropdown && !dropdown.classList.contains('hidden')) {
+                        closeDropdown();
+                    }
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+                    closeProfileDropdown();
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeProfileDropdown();
+                }
+            });
+        }
+
+        function openProfileDropdown() {
+            profileDropdown.classList.remove('hidden');
+            profileBtn.setAttribute('aria-expanded', 'true');
+            if (profileChevron) profileChevron.style.transform = 'rotate(180deg)';
+        }
+
+        function closeProfileDropdown() {
+            profileDropdown.classList.add('hidden');
+            profileBtn.setAttribute('aria-expanded', 'false');
+            if (profileChevron) profileChevron.style.transform = 'rotate(0deg)';
+        }
+
+        // Toggle notification dropdown open/close
         if (bellBtn && dropdown) {
             bellBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -189,6 +269,9 @@
                     closeDropdown();
                 } else {
                     openDropdown();
+                    if (profileDropdown && !profileDropdown.classList.contains('hidden')) {
+                        closeProfileDropdown();
+                    }
                 }
             });
 
@@ -402,25 +485,31 @@
         // Clear all notifications
         if (clearAllBtn) {
             clearAllBtn.addEventListener('click', function () {
-                if (!confirm('Apakah Anda yakin ingin menghapus semua notifikasi?')) {
-                    return;
-                }
-                fetch('/notifications', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
+                window.showConfirmModal({
+                    title: 'Hapus Semua Notifikasi',
+                    message: 'Apakah Anda yakin ingin menghapus semua riwayat notifikasi?',
+                    confirmText: 'Ya, Hapus Semua',
+                    cancelText: 'Batal',
+                    type: 'danger',
+                    onConfirm: function () {
+                        fetch('/notifications', {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(() => {
+                            listContainer.innerHTML = '';
+                            renderEmptyState();
+                            updateUnreadUI(0);
+                            if (tabAllCount) tabAllCount.textContent = '0';
+                        })
+                        .catch(err => console.error('Error clearing notifications:', err));
                     }
-                })
-                .then(res => res.json())
-                .then(() => {
-                    listContainer.innerHTML = '';
-                    renderEmptyState();
-                    updateUnreadUI(0);
-                    if (tabAllCount) tabAllCount.textContent = '0';
-                })
-                .catch(err => console.error('Error clearing notifications:', err));
+                });
             });
         }
 
@@ -467,3 +556,6 @@
         }, 30000);
     });
 </script>
+
+@include('layouts.modal')
+

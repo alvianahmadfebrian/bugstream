@@ -8,11 +8,15 @@ class Bug extends Model
 {
     protected $fillable = [
         'title',
+        'project',
         'priority',
         'status',
         'developer',
         'description',
         'reporter_id',
+        'attachment',
+        'attachment_name',
+        'attachment_size',
     ];
 
     /**

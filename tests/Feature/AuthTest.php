@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Bug;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
@@ -195,6 +197,7 @@ class AuthTest extends TestCase
 
         $response = $this->actingAs($user)->post('/bugs', [
             'title' => 'New Test Bug Title',
+            'project' => 'Instagram',
             'priority' => 'p1',
             'status' => 'open',
             'developer' => 'Alex Mercer',
@@ -207,6 +210,7 @@ class AuthTest extends TestCase
 
         $this->assertDatabaseHas('bugs', [
             'title' => 'New Test Bug Title',
+            'project' => 'Instagram',
             'priority' => 'p1',
             'status' => 'open',
             'developer' => 'Alex Mercer',
@@ -288,7 +292,7 @@ class AuthTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Analytics Summary');
-        $response->assertSee('Export to PDF');
+        $response->assertSee('Export to Excel');
     }
 
     /**
@@ -475,7 +479,7 @@ class AuthTest extends TestCase
             '_method' => 'PATCH',
             'status' => 'in_progress',
         ]);
-        $response->assertRedirect("/bugs/{$bug->id}");
+        $response->assertRedirect(route('bugs'));
         $this->assertEquals('in_progress', $bug->fresh()->status);
 
         // Developer tries to close (which is restricted)
@@ -537,5 +541,196 @@ class AuthTest extends TestCase
         $response = $this->actingAs($superAdmin)->delete("/users/{$superAdmin->id}");
         $response->assertSessionHasErrors('error');
         $this->assertDatabaseHas('users', ['id' => $superAdmin->id]);
+    }
+
+    /**
+     * Test bug creation form and bug views list actual developers from database.
+     */
+    public function test_bug_views_list_actual_database_developers(): void
+    {
+        $superAdmin = User::factory()->create(['role' => 'super_admin']);
+        $dev = User::factory()->create(['name' => 'RealDevName', 'role' => 'developer']);
+
+        $response = $this->actingAs($superAdmin)->get(route('bugs.create'));
+        $response->assertStatus(200);
+        $response->assertSee('RealDevName (Developer)');
+        $response->assertDontSee('Alex Mercer');
+        $response->assertDontSee('Sarah Chen');
+        $response->assertDontSee('Marcus Johnson');
+
+        $response = $this->actingAs($superAdmin)->get(route('bugs'));
+        $response->assertStatus(200);
+        $response->assertSee('RealDevName');
+        $response->assertDontSee('Sarah Jenkins');
+    }
+
+    /**
+     * Test header contains user profile dropdown with profile link.
+     */
+    public function test_header_contains_profile_dropdown(): void
+    {
+        $user = User::factory()->create(['name' => 'ProfileUser']);
+
+        $response = $this->actingAs($user)->get(route('bugs'));
+        $response->assertStatus(200);
+        $response->assertSee('id="user-profile-dropdown"', false);
+        $response->assertSee(route('settings'), false);
+    }
+
+    /**
+     * Test bug creation with attachment upload.
+     */
+    public function test_bug_creation_with_attachment_upload(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create(['role' => 'super_admin']);
+        $file = UploadedFile::fake()->image('screenshot.png', 640, 480);
+
+        $response = $this->actingAs($user)->post(route('bugs.store'), [
+            'title' => 'Bug with Attachment',
+            'priority' => 'p2',
+            'status' => 'open',
+            'description' => 'Test bug description with screenshot',
+            'attachment' => $file,
+        ]);
+
+        $response->assertRedirect(route('bugs'));
+
+        $bug = Bug::where('title', 'Bug with Attachment')->first();
+        $this->assertNotNull($bug);
+        $this->assertNotNull($bug->attachment);
+        $this->assertEquals('screenshot.png', $bug->attachment_name);
+        Storage::disk('public')->assertExists($bug->attachment);
+    }
+
+    /**
+     * Test bug deletion by super admin.
+     */
+    public function test_bug_deletion_by_super_admin(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $bug = Bug::create([
+            'title' => 'Bug To Delete',
+            'priority' => 'p3',
+            'status' => 'open',
+            'description' => 'Delete me',
+            'reporter_id' => $admin->id,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('bugs'));
+        $response->assertStatus(200);
+        $response->assertSee(route('bugs.show', $bug));
+
+        $deleteResponse = $this->actingAs($admin)->delete(route('bugs.destroy', $bug));
+        $deleteResponse->assertRedirect(route('bugs'));
+        $this->assertDatabaseMissing('bugs', ['id' => $bug->id]);
+    }
+
+    /**
+     * Test that developers cannot access bug creation or see Add New Bug button.
+     */
+    public function test_developer_cannot_create_or_report_bugs(): void
+    {
+        $developer = User::factory()->create(['role' => 'developer']);
+
+        // Cannot see Add New Bug button on bugs list
+        $response = $this->actingAs($developer)->get(route('bugs'));
+        $response->assertStatus(200);
+        $response->assertDontSee('Add New Bug');
+
+        // Cannot access create form
+        $createResponse = $this->actingAs($developer)->get(route('bugs.create'));
+        $createResponse->assertStatus(403);
+
+        // Cannot post to create bug
+        $storeResponse = $this->actingAs($developer)->post(route('bugs.store'), [
+            'title' => 'Dev Unauthorized Bug',
+            'priority' => 'p1',
+            'status' => 'open',
+            'description' => 'Should fail',
+        ]);
+        $storeResponse->assertStatus(403);
+    }
+
+    /**
+     * Test that developers cannot see developer filter dropdown and cannot access other developers' bugs.
+     */
+    public function test_developer_cannot_see_developer_filter_or_view_others_bugs(): void
+    {
+        $dev1 = User::factory()->create(['name' => 'DevOne', 'role' => 'developer']);
+        $dev2 = User::factory()->create(['name' => 'DevTwo', 'role' => 'developer']);
+
+        $bug1 = Bug::create([
+            'title' => 'Bug for DevOne',
+            'priority' => 'p1',
+            'status' => 'open',
+            'developer' => 'DevOne',
+            'description' => 'For DevOne only',
+        ]);
+
+        $bug2 = Bug::create([
+            'title' => 'Bug for DevTwo',
+            'priority' => 'p2',
+            'status' => 'open',
+            'developer' => 'DevTwo',
+            'description' => 'For DevTwo only',
+        ]);
+
+        // DevOne list view - no developer filter, sees own bug, does not see other bug
+        $response = $this->actingAs($dev1)->get(route('bugs'));
+        $response->assertStatus(200);
+        $response->assertDontSee('All Developers');
+        $response->assertSee('Bug for DevOne');
+        $response->assertDontSee('Bug for DevTwo');
+
+        // DevOne attempting to filter by DevTwo should still only see own bug
+        $filterResponse = $this->actingAs($dev1)->get(route('bugs', ['developer' => 'DevTwo']));
+        $filterResponse->assertStatus(200);
+        $filterResponse->assertSee('Bug for DevOne');
+        $filterResponse->assertDontSee('Bug for DevTwo');
+
+        // DevOne cannot view DevTwo bug details
+        $viewOtherResponse = $this->actingAs($dev1)->get(route('bugs.show', $bug2));
+        $viewOtherResponse->assertStatus(403);
+
+        // DevOne can view own bug details
+        $viewOwnResponse = $this->actingAs($dev1)->get(route('bugs.show', $bug1));
+        $viewOwnResponse->assertStatus(200);
+    }
+
+    /**
+     * Test Excel export for reports.
+     */
+    public function test_reports_excel_export(): void
+    {
+        $admin = User::factory()->create(['role' => 'super_admin']);
+        $dev = User::factory()->create(['role' => 'developer']);
+
+        Bug::create([
+            'title' => 'Export Bug',
+            'priority' => 'p1',
+            'status' => 'open',
+            'developer' => 'Alex',
+            'description' => 'Export bug description',
+            'reporter_id' => $admin->id,
+        ]);
+
+        // Admin can view reports page and download excel
+        $reportsPage = $this->actingAs($admin)->get(route('reports'));
+        $reportsPage->assertStatus(200);
+        $reportsPage->assertSee('Export to Excel');
+        $reportsPage->assertDontSee('Export to PDF');
+
+        $exportResponse = $this->actingAs($admin)->get(route('reports.export.excel'));
+        $exportResponse->assertStatus(200);
+        $exportResponse->assertHeader('Content-Type', 'application/vnd.ms-excel; charset=UTF-8');
+
+        // Developer is redirected from reports page and forbidden from export
+        $devPage = $this->actingAs($dev)->get(route('reports'));
+        $devPage->assertRedirect(route('bugs'));
+
+        $devExport = $this->actingAs($dev)->get(route('reports.export.excel'));
+        $devExport->assertStatus(403);
     }
 }

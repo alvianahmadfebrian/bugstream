@@ -111,7 +111,7 @@
                     <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                     <span>#{{ 4000 + $bug->id }}</span>
                 </div>
-                <h2 class="text-display-lg font-display-lg text-on-surface">{{ $bug->title }}</h2>
+                <h2 class="text-display-lg font-display-lg" style="color:#1e3a8a">{{ $bug->title }}</h2>
                 <div class="flex items-center gap-4 mt-2">
                     @if ($bug->priority == 'p1')
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-error-container text-on-error-container font-label-md text-label-md">
@@ -153,6 +153,13 @@
                         <span class="material-symbols-outlined text-[16px]">calendar_today</span>
                         Created {{ $bug->created_at->format('M d, Y') }}
                     </span>
+
+                    @if ($bug->project)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-label-md text-label-md border border-blue-200">
+                            <span class="material-symbols-outlined text-[14px]">folder</span>
+                            <span>{{ $bug->project }}</span>
+                        </span>
+                    @endif
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -185,13 +192,14 @@
 
                 <!-- Support Dev / QA & Super Admin Actions -->
                 @if ($role === 'super_admin' || $role === 'support_dev')
-                    <form action="{{ route('bugs.status.update', $bug) }}" method="POST" class="flex items-center gap-2 bg-surface-container-lowest p-2 border border-outline-variant rounded-xl shadow-sm">
+                    <form action="{{ route('bugs.status.update', $bug) }}" method="POST" class="flex flex-wrap items-center gap-3 bg-surface-container-lowest p-2 border border-outline-variant/80 rounded-xl shadow-xs">
                         @csrf
                         @method('PATCH')
                         
-                        <div class="flex items-center gap-1.5 px-2">
-                            <label for="status-select" class="text-label-md font-label-md text-secondary uppercase whitespace-nowrap">Status:</label>
-                            <select id="status-select" name="status" class="bg-transparent border-0 font-body-md text-body-md text-on-surface focus:ring-0 focus:outline-none p-1 cursor-pointer">
+                        <!-- Status Selector -->
+                        <div class="flex items-center gap-2 pl-2">
+                            <label for="status-select" class="text-[11px] font-semibold text-secondary uppercase tracking-wider">Status:</label>
+                            <select id="status-select" name="status" class="bg-surface-container-low border border-outline-variant/60 rounded-lg py-1.5 pl-3 pr-8 font-medium text-xs text-on-surface focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
                                 <option value="open" {{ $bug->status === 'open' ? 'selected' : '' }}>Open</option>
                                 <option value="in_progress" {{ $bug->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
                                 <option value="fixed" {{ $bug->status === 'fixed' || $bug->status === 'resolved' ? 'selected' : '' }}>Fixed</option>
@@ -200,20 +208,23 @@
                             </select>
                         </div>
                         
-                        <div class="h-6 w-[1px] bg-outline-variant/60"></div>
+                        <div class="h-6 w-px bg-outline-variant/60 hidden sm:block"></div>
                         
-                        <div class="flex items-center gap-1.5 px-2">
-                            <label for="developer-select" class="text-label-md font-label-md text-secondary uppercase whitespace-nowrap">Assignee:</label>
-                            <select id="developer-select" name="developer" class="bg-transparent border-0 font-body-md text-body-md text-on-surface focus:ring-0 focus:outline-none p-1 cursor-pointer">
+                        <!-- Assignee Selector -->
+                        <div class="flex items-center gap-2">
+                            <label for="developer-select" class="text-[11px] font-semibold text-secondary uppercase tracking-wider">Assignee:</label>
+                            <select id="developer-select" name="developer" class="bg-surface-container-low border border-outline-variant/60 rounded-lg py-1.5 pl-3 pr-8 font-medium text-xs text-on-surface focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
                                 <option value="" {{ empty($bug->developer) ? 'selected' : '' }}>Unassigned</option>
-                                <option value="anakin" {{ $bug->developer === 'anakin' ? 'selected' : '' }}>anakin (Developer)</option>
-                                <option value="obiwan" {{ $bug->developer === 'obiwan' ? 'selected' : '' }}>obiwan (Support Dev)</option>
-                                <option value="masteryoda" {{ $bug->developer === 'masteryoda' ? 'selected' : '' }}>masteryoda (Super Admin)</option>
+                                @foreach ($developers as $dev)
+                                    <option value="{{ $dev->name }}" {{ $bug->developer === $dev->name ? 'selected' : '' }}>{{ $dev->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         
-                        <button type="submit" class="px-3.5 py-1.5 text-white rounded-lg hover:opacity-90" style="background-color:#1e3a8a; transition-all font-label-md text-label-md flex items-center gap-1 cursor-pointer active:scale-[0.98]">
-                            <span class="material-symbols-outlined text-[16px]">save</span> Apply
+                        <!-- Apply Button -->
+                        <button type="submit" class="px-4 py-1.5 text-white rounded-lg hover:opacity-90 font-medium text-xs flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all ml-1" style="background-color:#1e3a8a;">
+                            <span class="material-symbols-outlined text-[16px]">save</span>
+                            <span>Apply</span>
                         </button>
                     </form>
                 @endif
@@ -226,25 +237,8 @@
                 <!-- Description Card -->
                 <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-6">
                     <h3 class="text-headline-sm font-headline-sm text-on-surface mb-4">Description</h3>
-                    <div class="text-body-lg font-body-lg text-on-surface-variant space-y-4">
-                        <p>{{ $bug->description }}</p>
-                        
-                        @if ($bug->id == 1)
-                            <p><strong>Steps to Reproduce:</strong></p>
-                            <ol class="list-decimal list-inside space-y-1 ml-2">
-                                <li>Add item to cart.</li>
-                                <li>Proceed to checkout and enter shipping details.</li>
-                                <li>Select 'Credit Card' and enter valid test credentials.</li>
-                                <li>Click 'Submit Payment'.</li>
-                                <li>Observe the loading spinner hangs for &gt;30 seconds before failing.</li>
-                            </ol>
-                            <div class="bg-surface-bright border border-outline-variant rounded-lg p-4 mt-4">
-                                <h4 class="text-label-md font-label-md text-secondary mb-2 uppercase tracking-wider">Error Log Extract</h4>
-                                <pre class="text-mono-code font-mono-code text-on-surface-variant overflow-x-auto"><code>[Error] 2023-10-24 14:32:01 - GatewayTimeoutException: Connection to payment provider timed out after 30000ms.
-  at PaymentService.processCharge (PaymentService.ts:145)
-  at CheckoutController.submit (CheckoutController.ts:89)</code></pre>
-                            </div>
-                        @endif
+                    <div class="text-body-lg font-body-lg text-on-surface-variant leading-relaxed whitespace-pre-line">
+                        {{ $bug->description }}
                     </div>
                 </div>
 
@@ -252,28 +246,52 @@
                 <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-headline-sm font-headline-sm text-on-surface">Attachments</h3>
-                        <button class="text-primary hover:text-primary-fixed-variant text-label-md font-label-md flex items-center gap-1 cursor-pointer">
-                            <span class="material-symbols-outlined text-[16px]">add</span> Add File
-                        </button>
                     </div>
-                    @if ($bug->id == 1)
-                        <div class="border border-outline-variant rounded-lg overflow-hidden bg-surface-bright group relative">
-                            <div class="aspect-video w-full bg-surface-container-low flex items-center justify-center relative">
-                                <img alt="Error Screenshot" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmmiUvOGEPDRDxasTA18lgOHL08IvJRspIc9oMwfs7_gCn2cR06Wc-j0PFiw7UdDxMnnaG02QJHCcE406IaKOuo7RS9-FO5F4sO5XmfeXAfjKcc3FljMYjSQiPjGgTaPtPPF-IR5HHaAnbVzTb2a8qXXE709qxEXU2_DRFCYtr5k-mtG4iUw36zWZat9h_M4GxNdQgSO5GUjv9Nok5wIj2lS37dVcLkzfvIHFTWnpURqcHp3xMS5dR"/>
-                                <div class="absolute inset-0 bg-inverse-surface/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <button class="bg-surface-container-lowest text-on-surface px-4 py-2 rounded-lg font-label-md flex items-center gap-2 shadow-sm cursor-pointer">
-                                        <span class="material-symbols-outlined text-[18px]">zoom_in</span> View Full
-                                    </button>
+                    @if ($bug->attachment)
+                        @php
+                            $ext = strtolower(pathinfo($bug->attachment, PATHINFO_EXTENSION));
+                            $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']);
+                            $attachmentUrl = asset('storage/' . $bug->attachment);
+                            $formattedSize = $bug->attachment_size ? round($bug->attachment_size / 1048576, 2) . ' MB' : '';
+                        @endphp
+                        @if ($isImage)
+                            <div class="border border-outline-variant rounded-lg overflow-hidden bg-surface-bright group relative">
+                                <div class="aspect-video w-full bg-surface-container-low flex items-center justify-center relative">
+                                    <img alt="Error Screenshot" class="w-full h-full object-contain bg-neutral-900" src="{{ $attachmentUrl }}"/>
+                                    <div class="absolute inset-0 bg-inverse-surface/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <a href="{{ $attachmentUrl }}" target="_blank" class="bg-surface-container-lowest text-on-surface px-4 py-2 rounded-lg font-label-md flex items-center gap-2 shadow-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+                                            <span class="material-symbols-outlined text-[18px]">zoom_in</span> View Full
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="p-3 border-t border-outline-variant flex items-center justify-between bg-surface-container-lowest">
+                                    <div class="flex items-center gap-2 text-body-md font-body-md text-on-surface-variant truncate mr-2">
+                                        <span class="material-symbols-outlined text-[18px]">image</span>
+                                        <span class="truncate">{{ $bug->attachment_name ?? basename($bug->attachment) }}</span>
+                                    </div>
+                                    @if($formattedSize)
+                                        <span class="text-label-md font-label-md text-secondary shrink-0">{{ $formattedSize }}</span>
+                                    @endif
                                 </div>
                             </div>
-                            <div class="p-3 border-t border-outline-variant flex items-center justify-between bg-surface-container-lowest">
-                                <div class="flex items-center gap-2 text-body-md font-body-md text-on-surface-variant">
-                                    <span class="material-symbols-outlined text-[18px]">image</span>
-                                    checkout-error-state.png
+                        @else
+                            <div class="border border-outline-variant rounded-xl p-4 bg-surface-container-lowest flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+                                        <span class="material-symbols-outlined text-[24px]">description</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold text-on-surface truncate">{{ $bug->attachment_name ?? basename($bug->attachment) }}</p>
+                                        @if($formattedSize)
+                                            <p class="text-[11px] text-secondary mt-0.5">{{ $formattedSize }}</p>
+                                        @endif
+                                    </div>
                                 </div>
-                                <span class="text-label-md font-label-md text-secondary">2.4 MB</span>
+                                <a href="{{ $attachmentUrl }}" target="_blank" download class="px-3 py-1.5 rounded-lg border border-outline-variant hover:bg-surface-container-high text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">download</span> Unduh
+                                </a>
                             </div>
-                        </div>
+                        @endif
                     @else
                         <div class="border border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface hover:bg-surface-container-low transition-colors cursor-pointer group">
                             <span class="material-symbols-outlined text-outline-variant text-[32px] mb-2">upload_file</span>
@@ -287,8 +305,17 @@
             <div class="flex flex-col gap-container-gap">
                 <!-- Meta Info Card -->
                 <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-6">
-                    <h3 class="text-headline-sm font-headline-sm text-on-surface mb-4">Details</h3>
+                    <h3 class="text-headline-sm font-headline-sm text-on-surface mb-4">Informasi Bug</h3>
                     <div class="space-y-4">
+                        @if ($bug->project)
+                            <div class="flex justify-between items-center pb-3 border-b border-outline-variant/50">
+                                <span class="text-label-md font-label-md text-secondary">Project</span>
+                                <span class="text-body-md font-body-md text-blue-700 font-semibold flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[15px]">folder</span>
+                                    {{ $bug->project }}
+                                </span>
+                            </div>
+                        @endif
                         <div class="flex justify-between items-center pb-3 border-b border-outline-variant/50">
                             <span class="text-label-md font-label-md text-secondary">Assignee</span>
                             <div class="flex items-center gap-2">
@@ -300,15 +327,19 @@
                         </div>
                         <div class="flex justify-between items-center pb-3 border-b border-outline-variant/50">
                             <span class="text-label-md font-label-md text-secondary">Reporter</span>
-                            <span class="text-body-md font-body-md text-on-surface">{{ $bug->reporter->name ?? 'System Monitor' }}</span>
+                            <span class="text-body-md font-body-md text-on-surface font-medium">{{ $bug->reporter->name ?? 'User' }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-3 border-b border-outline-variant/50">
-                            <span class="text-label-md font-label-md text-secondary">Environment</span>
-                            <span class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant text-label-md font-label-md">Production</span>
+                            <span class="text-label-md font-label-md text-secondary">Priority</span>
+                            <span class="text-body-md font-body-md text-on-surface uppercase font-semibold">{{ $bug->priority }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-outline-variant/50">
+                            <span class="text-label-md font-label-md text-secondary">Status</span>
+                            <span class="text-body-md font-body-md text-primary font-semibold uppercase">{{ str_replace('_', ' ', $bug->status) }}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-label-md font-label-md text-secondary">Component</span>
-                            <span class="text-body-md font-body-md text-on-surface">Payment Services</span>
+                            <span class="text-label-md font-label-md text-secondary">Dibuat</span>
+                            <span class="text-body-md font-body-md text-on-surface">{{ $bug->created_at->format('d M Y, H:i') }}</span>
                         </div>
                     </div>
                 </div>
@@ -316,58 +347,48 @@
                 <!-- History Timeline -->
                 <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-6">
                     <h3 class="text-headline-sm font-headline-sm text-on-surface mb-6">Activity Timeline</h3>
-                    <div class="relative pl-4 space-y-6 before:absolute before:inset-y-0 before:left-[11px] before:w-0.5 before:bg-outline-variant/50">
+                    <div class="relative space-y-6 before:absolute before:top-4 before:bottom-4 before:left-[15px] before:w-[2px] before:bg-outline-variant/70">
                         @if ($bug->status !== 'open')
                             <!-- Timeline Item: Status Change -->
-                            <div class="relative">
-                                <div class="absolute -left-[27px] bg-surface-container-lowest rounded-full p-1 border-2 border-primary">
-                                    <span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">sync</span>
+                            <div class="relative flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-primary flex items-center justify-center shrink-0 z-10 shadow-xs">
+                                    <span class="material-symbols-outlined text-[16px] text-primary">sync</span>
                                 </div>
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-body-md font-body-md text-on-surface">
-                                        <span class="font-medium">{{ $bug->developer ?? 'System' }}</span> changed status to <span class="text-primary font-medium">{{ ucfirst(str_replace('_', ' ', $bug->status)) }}</span>
+                                <div class="flex-1 min-w-0 pt-0.5">
+                                    <p class="text-body-md font-body-md text-on-surface leading-snug">
+                                        Status diubah menjadi <span class="font-semibold text-primary uppercase">{{ str_replace('_', ' ', $bug->status) }}</span>
                                     </p>
-                                    <span class="text-label-md font-label-md text-secondary">2 hours ago</span>
+                                    <span class="text-label-md font-label-md text-secondary mt-0.5 block">{{ $bug->updated_at->diffForHumans() }}</span>
                                 </div>
                             </div>
                         @endif
 
                         @if ($bug->developer && $bug->developer !== 'Unassigned')
                             <!-- Timeline Item: Assignment -->
-                            <div class="relative">
-                                <div class="absolute -left-[27px] bg-surface-container-lowest rounded-full p-1 border-2 border-outline-variant">
-                                    <span class="material-symbols-outlined text-[14px] text-secondary">person_add</span>
+                            <div class="relative flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-blue-600 flex items-center justify-center shrink-0 z-10 shadow-xs">
+                                    <span class="material-symbols-outlined text-[16px] text-blue-600">person_add</span>
                                 </div>
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-body-md font-body-md text-on-surface">
-                                        <span class="font-medium">Admin User</span> assigned to <span class="font-medium">{{ $bug->developer }}</span>
+                                <div class="flex-1 min-w-0 pt-0.5">
+                                    <p class="text-body-md font-body-md text-on-surface leading-snug">
+                                        Ditugaskan ke <span class="font-semibold text-primary">{{ $bug->developer }}</span>
                                     </p>
-                                    <span class="text-label-md font-label-md text-secondary">4 hours ago</span>
+                                    <span class="text-label-md font-label-md text-secondary mt-0.5 block">{{ $bug->updated_at->diffForHumans() }}</span>
                                 </div>
                             </div>
                         @endif
 
                         <!-- Timeline Item: Created -->
-                        <div class="relative">
-                            <div class="absolute -left-[27px] bg-surface-container-lowest rounded-full p-1 border-2 border-outline-variant">
-                                <span class="material-symbols-outlined text-[14px] text-secondary">bug_report</span>
+                        <div class="relative flex items-start gap-4">
+                            <div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-outline-variant flex items-center justify-center shrink-0 z-10 shadow-xs">
+                                <span class="material-symbols-outlined text-[16px] text-secondary">bug_report</span>
                             </div>
-                            <div class="flex flex-col gap-1">
-                                <p class="text-body-md font-body-md text-on-surface">
-                                    <span class="font-medium">{{ $bug->id <= 5 ? 'System Monitor' : 'masteryoda' }}</span> created issue
+                            <div class="flex-1 min-w-0 pt-0.5">
+                                <p class="text-body-md font-body-md text-on-surface leading-snug">
+                                    <span class="font-semibold">{{ $bug->reporter->name ?? 'User' }}</span> membuat laporan bug
                                 </p>
-                                <span class="text-label-md font-label-md text-secondary">{{ $bug->created_at->format('M d, Y - H:i') }}</span>
+                                <span class="text-label-md font-label-md text-secondary mt-0.5 block">{{ $bug->created_at->format('d M Y - H:i') }}</span>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Comment input -->
-                    <div class="mt-6 pt-4 border-t border-outline-variant">
-                        <div class="relative flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-outline-variant bg-surface-container flex items-center justify-center">
-                                <span class="material-symbols-outlined text-secondary text-[20px]">person</span>
-                            </div>
-                            <input class="w-full bg-surface-bright border border-outline-variant rounded-full py-2 px-4 text-body-md font-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Add a comment..." type="text"/>
                         </div>
                     </div>
                 </div>
