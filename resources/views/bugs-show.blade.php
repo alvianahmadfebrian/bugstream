@@ -127,21 +127,21 @@
                         </span>
                     @endif
 
-                    @if ($bug->status == 'open')
+                    @if ($bug->status == 'new' || $bug->status == 'open')
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md border border-outline-variant">
-                            <span class="material-symbols-outlined text-[14px]">info</span> Open
+                            <span class="material-symbols-outlined text-[14px]">fiber_new</span> New
                         </span>
                     @elseif ($bug->status == 'in_progress')
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-primary font-label-md text-label-md border border-outline-variant">
                             <span class="material-symbols-outlined text-[14px]">progress_activity</span> In Progress
                         </span>
-                    @elseif ($bug->status == 'fixed' || $bug->status == 'resolved')
+                    @elseif ($bug->status == 'done_by_development' || $bug->status == 'fixed' || $bug->status == 'resolved')
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-tint text-on-primary font-label-md text-label-md">
-                            <span class="material-symbols-outlined text-[14px]">check_circle</span> Fixed
+                            <span class="material-symbols-outlined text-[14px]">check_circle</span> Done by Development
                         </span>
-                    @elseif ($bug->status == 'retest')
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-inverse-surface text-inverse-on-surface font-label-md text-label-md border border-outline-variant">
-                            <span class="material-symbols-outlined text-[14px]">build</span> Retest
+                    @elseif ($bug->status == 'done_by_support_qa' || $bug->status == 'retest')
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-container text-on-tertiary-container font-label-md text-label-md border border-outline-variant">
+                            <span class="material-symbols-outlined text-[14px]">verified</span> Done by Support/QA
                         </span>
                     @else
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-md text-label-md">
@@ -169,25 +169,27 @@
 
                 <!-- Developer Actions -->
                 @if ($role === 'developer')
-                    @if ($bug->status === 'open')
-                        <form action="{{ route('bugs.status.update', $bug) }}" method="POST" class="inline">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="status" value="in_progress">
-                            <button type="submit" class="px-4 py-2 text-white rounded-lg hover:opacity-90" style="background-color:#1e3a8a; transition-all font-label-md text-label-md flex items-center gap-2 shadow-sm active:scale-95 duration-100 cursor-pointer">
-                                <span class="material-symbols-outlined text-[18px]">play_arrow</span> Start Progress
-                            </button>
-                        </form>
-                    @elseif ($bug->status === 'in_progress')
-                        <form action="{{ route('bugs.status.update', $bug) }}" method="POST" class="inline">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="status" value="fixed">
-                            <button type="submit" class="px-4 py-2 text-white rounded-lg hover:opacity-90" style="background-color:#1e3a8a; transition-all font-label-md text-label-md flex items-center gap-2 shadow-sm active:scale-95 duration-100 cursor-pointer">
-                                <span class="material-symbols-outlined text-[18px]">check_circle</span> Mark as Fixed
-                            </button>
-                        </form>
-                    @endif
+                    <form action="{{ route('bugs.status.update', $bug) }}" method="POST" class="flex flex-wrap items-center gap-3 bg-surface-container-lowest p-2 border border-outline-variant/80 rounded-xl shadow-xs">
+                        @csrf
+                        @method('PATCH')
+
+                        <!-- Status Selector -->
+                        <div class="flex items-center gap-2 pl-2">
+                            <label for="dev-status-select" class="text-[11px] font-semibold text-secondary uppercase tracking-wider">Status:</label>
+                            <select id="dev-status-select" name="status" class="bg-surface-container-low border border-outline-variant/60 rounded-lg py-1.5 pl-3 pr-8 font-medium text-xs text-on-surface focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
+                                <option value="new" {{ in_array($bug->status, ['new', 'open']) ? 'selected' : '' }}>New</option>
+                                <option value="in_progress" {{ $bug->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                <option value="done_by_development" {{ in_array($bug->status, ['done_by_development', 'fixed']) ? 'selected' : '' }}>Done by Development</option>
+                            </select>
+                        </div>
+
+                        <!-- Apply Button -->
+                        <button type="submit" class="px-4 py-1.5 text-white rounded-lg hover:opacity-90 font-medium text-xs flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all ml-1" style="background-color:#1e3a8a;">
+                            <span class="material-symbols-outlined text-[16px]">save</span>
+                            <span>Apply</span>
+                        </button>
+                    </form>
+
                 @endif
 
                 <!-- Support Dev / QA & Super Admin Actions -->
@@ -200,10 +202,10 @@
                         <div class="flex items-center gap-2 pl-2">
                             <label for="status-select" class="text-[11px] font-semibold text-secondary uppercase tracking-wider">Status:</label>
                             <select id="status-select" name="status" class="bg-surface-container-low border border-outline-variant/60 rounded-lg py-1.5 pl-3 pr-8 font-medium text-xs text-on-surface focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
-                                <option value="open" {{ $bug->status === 'open' ? 'selected' : '' }}>Open</option>
+                                <option value="new" {{ $bug->status === 'new' || $bug->status === 'open' ? 'selected' : '' }}>New</option>
                                 <option value="in_progress" {{ $bug->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                <option value="fixed" {{ $bug->status === 'fixed' || $bug->status === 'resolved' ? 'selected' : '' }}>Fixed</option>
-                                <option value="retest" {{ $bug->status === 'retest' ? 'selected' : '' }}>Retest</option>
+                                <option value="done_by_development" {{ $bug->status === 'done_by_development' || $bug->status === 'fixed' ? 'selected' : '' }}>Done by Development</option>
+                                <option value="done_by_support_qa" {{ $bug->status === 'done_by_support_qa' || $bug->status === 'retest' ? 'selected' : '' }}>Done by Support/QA</option>
                                 <option value="closed" {{ $bug->status === 'closed' ? 'selected' : '' }}>Closed</option>
                             </select>
                         </div>

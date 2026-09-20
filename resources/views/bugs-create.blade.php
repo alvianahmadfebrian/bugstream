@@ -176,9 +176,10 @@
                         <div>
                             <label class="block font-label-md text-label-md text-on-surface mb-2" for="status">Status</label>
                             <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-shadow cursor-pointer" id="status" name="status">
-                                <option value="open" {{ old('status') == 'open' ? 'selected' : '' }}>Open</option>
+                                <option value="new" {{ old('status', 'new') == 'new' ? 'selected' : '' }}>New</option>
                                 <option value="in_progress" {{ old('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                <option value="resolved" {{ old('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                                <option value="done_by_development" {{ old('status') == 'done_by_development' ? 'selected' : '' }}>Done by Development</option>
+                                <option value="done_by_support_qa" {{ old('status') == 'done_by_support_qa' ? 'selected' : '' }}>Done by Support/QA</option>
                             </select>
                         </div>
 

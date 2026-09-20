@@ -153,10 +153,10 @@
                     </div>
                     <select name="status" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-md py-1.5 pl-3.5 pr-9 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none min-w-[140px]">
                         <option value="">All Statuses</option>
-                        <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
+                        <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
                         <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                        <option value="fixed" {{ request('status') == 'fixed' ? 'selected' : '' }}>Fixed</option>
-                        <option value="retest" {{ request('status') == 'retest' ? 'selected' : '' }}>Retest</option>
+                        <option value="done_by_development" {{ request('status') == 'done_by_development' ? 'selected' : '' }}>Done by Development</option>
+                        <option value="done_by_support_qa" {{ request('status') == 'done_by_support_qa' ? 'selected' : '' }}>Done by Support/QA</option>
                         <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
                     </select>
                     <select name="priority" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-md py-1.5 pl-3.5 pr-9 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none min-w-[140px]">
@@ -221,14 +221,14 @@
                                             @endif
                                         </td>
                                         <td class="py-4 px-4">
-                                            @if ($bug->status == 'open')
-                                                <span class="inline-flex px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md">Open</span>
+                                            @if ($bug->status == 'new' || $bug->status == 'open')
+                                                <span class="inline-flex px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md">New</span>
                                             @elseif ($bug->status == 'in_progress')
                                                 <span class="inline-flex px-3 py-1 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md">In Progress</span>
-                                            @elseif ($bug->status == 'fixed' || $bug->status == 'resolved')
-                                                <span class="inline-flex px-3 py-1 rounded-full bg-surface-tint text-on-primary font-label-md text-label-md">Fixed</span>
-                                            @elseif ($bug->status == 'retest')
-                                                <span class="inline-flex px-3 py-1 rounded-full bg-inverse-surface text-inverse-on-surface font-label-md text-label-md">Retest</span>
+                                            @elseif ($bug->status == 'done_by_development' || $bug->status == 'fixed' || $bug->status == 'resolved')
+                                                <span class="inline-flex px-3 py-1 rounded-full bg-surface-tint text-on-primary font-label-md text-label-md">Done by Dev</span>
+                                            @elseif ($bug->status == 'done_by_support_qa' || $bug->status == 'retest')
+                                                <span class="inline-flex px-3 py-1 rounded-full bg-tertiary-container text-on-tertiary-container font-label-md text-label-md">Done by QA</span>
                                             @else
                                                 <span class="inline-flex px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-md text-label-md">Closed</span>
                                             @endif

@@ -69,7 +69,7 @@ class BugController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'project' => ['nullable', 'string', 'max:255'],
             'priority' => ['required', 'string', 'in:p1,p2,p3'],
-            'status' => ['required', 'string', 'in:open,in_progress,resolved'],
+            'status' => ['required', 'string', 'in:new,in_progress,done_by_development,done_by_support_qa,open,fixed,retest,closed'],
             'developer' => ['nullable', 'string'],
             'description' => ['required', 'string'],
             'attachment' => ['nullable', 'file', 'max:5120'],
@@ -162,12 +162,12 @@ class BugController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => ['required', 'string', 'in:open,in_progress,fixed,retest,closed'],
+            'status' => ['required', 'string', 'in:new,in_progress,done_by_development,done_by_support_qa,open,fixed,retest,closed'],
             'developer' => ['nullable', 'string'],
         ]);
 
         if ($user->role === 'developer') {
-            if (! in_array($validated['status'], ['open', 'in_progress', 'fixed'])) {
+            if (! in_array($validated['status'], ['new', 'open', 'in_progress', 'done_by_development', 'fixed'])) {
                 return redirect()->back()->withErrors(['status' => 'Developer is not allowed to set this status.']);
             }
             unset($validated['developer']);
@@ -198,10 +198,13 @@ class BugController extends Controller
         if ($oldStatus !== $bug->status) {
             $statusLabels = [
                 'open' => 'Open',
+                'new' => 'New',
                 'in_progress' => 'In Progress',
                 'fixed' => 'Fixed',
                 'retest' => 'Retest',
                 'closed' => 'Closed',
+                'done_by_development' => 'Done by Development',
+                'done_by_support_qa' => 'Done by Support/QA',
             ];
             $statusLabel = $statusLabels[$bug->status] ?? ucfirst($bug->status);
 

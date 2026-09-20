@@ -223,10 +223,10 @@
                         <!-- Status Selector -->
                         <select name="status" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-lg py-1.5 pl-3.5 pr-9 text-body-md font-medium text-on-surface focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer">
                             <option value="">Semua Status</option>
-                            <option value="open" {{ request('status') === 'open' ? 'selected' : '' }}>Open</option>
+                            <option value="new" {{ request('status') === 'new' ? 'selected' : '' }}>New</option>
                             <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                            <option value="fixed" {{ request('status') === 'fixed' ? 'selected' : '' }}>Fixed</option>
-                            <option value="retest" {{ request('status') === 'retest' ? 'selected' : '' }}>Retest</option>
+                            <option value="done_by_development" {{ request('status') === 'done_by_development' ? 'selected' : '' }}>Done by Development</option>
+                            <option value="done_by_support_qa" {{ request('status') === 'done_by_support_qa' ? 'selected' : '' }}>Done by Support/QA</option>
                             <option value="closed" {{ request('status') === 'closed' ? 'selected' : '' }}>Closed</option>
                         </select>
 
