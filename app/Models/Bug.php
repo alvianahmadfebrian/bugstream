@@ -8,6 +8,7 @@ class Bug extends Model
 {
     protected $fillable = [
         'title',
+        'project_id',
         'project',
         'priority',
         'status',
@@ -25,5 +26,13 @@ class Bug extends Model
     public function reporter()
     {
         return $this->belongsTo(User::class, 'reporter_id');
+    }
+
+    /**
+     * Get the project folder this bug belongs to.
+     */
+    public function projectFolder()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
     }
 }

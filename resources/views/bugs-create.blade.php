@@ -133,9 +133,26 @@
             <form class="bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant/40 p-container-gap" action="{{ route('bugs.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="space-y-6">
-                    <!-- Title & Project Name Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="md:col-span-2">
+                    @if($selectedProject)
+                        <!-- Locked Project Folder Banner -->
+                        <input type="hidden" name="project_id" value="{{ $selectedProject->id }}"/>
+                        <input type="hidden" name="project" value="{{ $selectedProject->name }}"/>
+                        <input type="hidden" name="from_project" value="1"/>
+                        <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-blue-100 text-primary flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">folder</span>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-semibold text-secondary uppercase tracking-wider block">Project Folder</span>
+                                    <h4 class="text-base font-bold text-primary">{{ $selectedProject->name }}</h4>
+                                </div>
+                            </div>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-blue-200/60 text-primary font-semibold">Otomatis Terkunci</span>
+                        </div>
+
+                        <!-- Title Input Full Width -->
+                        <div>
                             <label class="block font-label-md text-label-md text-on-surface mb-2" for="bugTitle">Bug Title <span class="text-error">*</span></label>
                             <input 
                                 class="w-full bg-surface-container-lowest border rounded-lg px-4 py-2.5 text-body-md focus:outline-none focus:ring-1 transition-shadow placeholder-outline {{ $errors->has('title') ? 'border-error focus:border-error focus:ring-error/20' : 'border-outline-variant focus:border-primary focus:ring-primary' }}" 
@@ -147,18 +164,43 @@
                                 type="text"
                             />
                         </div>
-                        <div>
-                            <label class="block font-label-md text-label-md text-on-surface mb-2" for="project">Project / Aplikasi</label>
-                            <input 
-                                class="w-full bg-surface-container-lowest border rounded-lg px-4 py-2.5 text-body-md focus:outline-none focus:ring-1 transition-shadow placeholder-outline border-outline-variant focus:border-primary focus:ring-primary" 
-                                id="project" 
-                                name="project" 
-                                value="{{ old('project') }}"
-                                placeholder="Nama project" 
-                                type="text"
-                            />
+                    @else
+                        <!-- Title & Project Selector Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="md:col-span-2">
+                                <label class="block font-label-md text-label-md text-on-surface mb-2" for="bugTitle">Bug Title <span class="text-error">*</span></label>
+                                <input 
+                                    class="w-full bg-surface-container-lowest border rounded-lg px-4 py-2.5 text-body-md focus:outline-none focus:ring-1 transition-shadow placeholder-outline {{ $errors->has('title') ? 'border-error focus:border-error focus:ring-error/20' : 'border-outline-variant focus:border-primary focus:ring-primary' }}" 
+                                    id="bugTitle" 
+                                    name="title" 
+                                    value="{{ old('title') }}"
+                                    placeholder="Judul bug" 
+                                    required 
+                                    type="text"
+                                />
+                            </div>
+                            <div>
+                                <label class="block font-label-md text-label-md text-on-surface mb-2" for="project_id">Project Folder</label>
+                                @if(isset($projects) && $projects->count() > 0)
+                                    <select id="project_id" name="project_id" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer">
+                                        <option value="">Pilih Folder Project...</option>
+                                        @foreach($projects as $proj)
+                                            <option value="{{ $proj->id }}" {{ old('project_id') == $proj->id ? 'selected' : '' }}>📁 {{ $proj->name }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <input 
+                                        class="w-full bg-surface-container-lowest border rounded-lg px-4 py-2.5 text-body-md focus:outline-none focus:ring-1 transition-shadow placeholder-outline border-outline-variant focus:border-primary focus:ring-primary" 
+                                        id="project" 
+                                        name="project" 
+                                        value="{{ old('project') }}"
+                                        placeholder="Nama project" 
+                                        type="text"
+                                    />
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                    @endif
 
                     <!-- Dropdowns -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

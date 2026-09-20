@@ -173,7 +173,15 @@
                             @endforeach
                         </select>
                     @endif
-                    @if (request()->hasAny(['status', 'priority', 'developer']))
+                    @if (isset($projects) && $projects->count() > 0)
+                        <select name="project_id" onchange="this.form.submit()" class="bg-surface border border-outline-variant rounded-md py-1.5 pl-3.5 pr-9 text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none min-w-[140px]">
+                            <option value="">All Projects</option>
+                            @foreach ($projects as $proj)
+                                <option value="{{ $proj->id }}" {{ request('project_id') == $proj->id ? 'selected' : '' }}>📁 {{ $proj->name }}</option>
+                            @endforeach
+                        </select>
+                    @endif
+                    @if (request()->hasAny(['status', 'priority', 'developer', 'project_id', 'project']))
                         <a href="{{ route('bugs') }}" class="text-xs text-primary hover:underline ml-auto font-medium">Reset Filters</a>
                     @endif
                 </form>

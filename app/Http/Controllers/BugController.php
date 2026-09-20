@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bug;
+use App\Models\Project;
 use App\Models\User;
 use App\Notifications\BugNotification;
 use Illuminate\Http\Request;
@@ -36,10 +37,17 @@ class BugController extends Controller
             $query->where('developer', $request->developer);
         }
 
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        } elseif ($request->filled('project')) {
+            $query->where('project', $request->project);
+        }
+
         $bugs = $query->orderBy('created_at', 'desc')->get();
         $developers = User::where('role', 'developer')->orderBy('name')->get();
+        $projects = Project::orderBy('name')->get();
 
-        return view('bugs', compact('bugs', 'developers'));
+        return view('bugs', compact('bugs', 'developers', 'projects'));
     }
 
     /**
@@ -52,8 +60,16 @@ class BugController extends Controller
         }
 
         $developers = User::where('role', 'developer')->orderBy('name')->get();
+        $projects = Project::orderBy('name')->get();
+        $selectedProject = null;
 
-        return view('bugs-create', compact('developers'));
+        if ($request->filled('project_id')) {
+            $selectedProject = Project::find($request->project_id);
+        } elseif ($request->filled('project')) {
+            $selectedProject = Project::where('name', $request->project)->first();
+        }
+
+        return view('bugs-create', compact('developers', 'projects', 'selectedProject'));
     }
 
     /**
@@ -67,13 +83,29 @@ class BugController extends Controller
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'project_id' => ['nullable', 'exists:projects,id'],
             'project' => ['nullable', 'string', 'max:255'],
             'priority' => ['required', 'string', 'in:p1,p2,p3'],
-            'status' => ['required', 'string', 'in:new,in_progress,done_by_development,done_by_support_qa,open,fixed,retest,closed'],
+            'status' => ['required', 'string', 'in:new,in_progress,done_by_development,done_by_support_qa,open,fixed,retest,closed,resolved'],
             'developer' => ['nullable', 'string'],
             'description' => ['required', 'string'],
             'attachment' => ['nullable', 'file', 'max:5120'],
         ]);
+
+        // Auto-resolve project name and project_id
+        if (! empty($validated['project_id'])) {
+            $projectObj = Project::find($validated['project_id']);
+            if ($projectObj) {
+                $validated['project'] = $projectObj->name;
+            }
+        } elseif (! empty($validated['project'])) {
+            $projectObj = Project::firstOrCreate(
+                ['name' => trim($validated['project'])],
+                ['created_by' => $request->user()->id]
+            );
+            $validated['project_id'] = $projectObj->id;
+            $validated['project'] = $projectObj->name;
+        }
 
         $validated['reporter_id'] = $request->user()->id;
 
@@ -131,6 +163,10 @@ class BugController extends Controller
                     badgeColor: 'error'
                 ));
             }
+        }
+
+        if ($request->boolean('from_project') && $bug->project_id) {
+            return redirect()->route('projects.show', $bug->project_id)->with('success', 'Bug reported successfully.');
         }
 
         return redirect()->route('bugs')->with('success', 'Bug reported successfully.');

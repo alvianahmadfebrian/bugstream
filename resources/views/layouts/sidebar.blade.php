@@ -28,6 +28,10 @@
                 <span class="sidebar-text">User Management</span>
             </a>
         @endif
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('projects*') ? 'font-bold bg-blue-50' : 'hover:bg-blue-50' }}" style="color:#1e3a8a;" href="{{ route('projects.index') }}" title="Projects">
+            <span class="material-symbols-outlined shrink-0" style="font-variation-settings: 'FILL' {{ request()->routeIs('projects*') ? 1 : 0 }};">folder</span>
+            <span class="sidebar-text">Projects</span>
+        </a>
         <a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors active:scale-95 duration-150 font-body-md text-body-md {{ request()->routeIs('bugs*') ? 'font-bold bg-blue-50' : 'hover:bg-blue-50' }}" style="color:#1e3a8a;" href="{{ route('bugs') }}" title="Bugs">
             <span class="material-symbols-outlined shrink-0" style="font-variation-settings: 'FILL' {{ request()->routeIs('bugs*') ? 1 : 0 }};">bug_report</span>
             <span class="sidebar-text">Bugs</span>

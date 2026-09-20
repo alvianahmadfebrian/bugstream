@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BugController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Models\Bug;
@@ -31,6 +32,13 @@ Route::middleware('auth')->group(function () {
         return view('dashboard', compact('recentBugs'));
     })->name('dashboard');
 
+    // Projects (Folder Project)
+    Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+
+    // Bugs
     Route::get('/bugs', [BugController::class, 'index'])->name('bugs');
     Route::get('/bugs/create', [BugController::class, 'create'])->name('bugs.create');
     Route::post('/bugs', [BugController::class, 'store'])->name('bugs.store');
