@@ -34,7 +34,32 @@ class AuthTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('QATrack');
+        $response->assertSee('Sign In');
         $response->assertSee('Email or Username');
+        $response->assertSee('Sign in to manage bugs and testing workflows.');
+    }
+
+    /**
+     * Test guest password reset via forgot-password route.
+     */
+    public function test_guest_can_reset_password(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'developer@example.com',
+            'password' => bcrypt('old-password'),
+        ]);
+
+        $response = $this->post('/forgot-password', [
+            'reset_email' => 'developer@example.com',
+            'new_password' => 'new-secure-password',
+            'new_password_confirmation' => 'new-secure-password',
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/login');
+        $response->assertSessionHas('status');
+
+        $this->assertTrue(Hash::check('new-secure-password', $user->fresh()->password));
     }
 
     /**
